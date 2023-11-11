@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "8n5rd+JWRQv9VOl1phL9X0ghITojU0OPZaHRaXXrgIfQJHNuD/75e3+ZIYS83kcHO2KX//tgfFarkKHEXf1VSg==",
+  "success": true,
+  "projectFilePath": "/Volumes/External/Code/mujrozhlas-2/mujrozhlas-2.csproj",
+  "expectedPackageFiles": [
+    "/Users/petrvalach/.nuget/packages/htmlagilitypack/1.11.54/htmlagilitypack.1.11.54.nupkg.sha512",
+    "/Users/petrvalach/.nuget/packages/litedb/5.0.17/litedb.5.0.17.nupkg.sha512"
+  ],
+  "logs": []
+}
