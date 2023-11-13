@@ -61,10 +61,29 @@ public class TitlePageParser
             throw new ExtractorException("Episode is missing", null);
         }
 
-        var episodes = JsonSerializer.Deserialize<Episode>(episodeResponse);
+        var episode = JsonSerializer.Deserialize<Episode>(episodeResponse);
 
-        var x = episodes.data;//["relationships"].serial.data.id;
-        //var t = x.relationships;
+        if (episode.data.Type != "episode")
+        {
+            throw new ExtractorException("Wrong type of 'Episode'", null);
+        }
+
+        if (episode.data.Relationships is null)
+        {
+            throw new ExtractorException("Relationships is missing in 'Episode'", null);
+        }
+
+        if (episode.data.Relationships.serial is null)
+        {
+            throw new ExtractorException("Serial is missing in 'Relationships'", null);
+        }
+
+        if (episode.data.Relationships.serial.data is null)
+        {
+            throw new ExtractorException("Data is missing in 'Serial'", null);
+        }
+
+        var serialId = episode.data.Relationships.serial.data.id;
     }
 
     static async Task<string> LoadHtmlContent(string url)

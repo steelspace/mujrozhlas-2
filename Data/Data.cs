@@ -7,4 +7,7 @@ public class Data
 
     [JsonPropertyName("type")]
     public string? Type { get; set; }
+
+    [JsonPropertyName("relationships")]
+    public Relationships? Relationships { get; set; }
 }

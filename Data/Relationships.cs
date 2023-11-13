@@ -1,1 +1,1 @@
-public record Relationships(Serial Serial);
+public record Relationships(Serial serial);
