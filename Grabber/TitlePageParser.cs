@@ -1,5 +1,6 @@
 namespace Extractor;
 
+using System.Dynamic;
 using System.Net;
 using System.Text.Json;
 using Extractor.Common;
@@ -7,9 +8,9 @@ using HtmlAgilityPack;
 
 public class TitlePageParser
 {
-    public async Task<IEnumerable<Episode>> ExtractTitleInformation()
+    public async Task<IEnumerable<ParsedEpisode>> ExtractTitleInformation()
     {
-        var episodes = new List<Episode>();
+        var episodes = new List<ParsedEpisode>();
 
         string url = "https://www.mujrozhlas.cz/podvecerni-cteni/alena-mornstajnova-listopad-co-kdyby-v-listopadu-1989-dopadlo-jinak";
 
@@ -32,7 +33,7 @@ public class TitlePageParser
                 var decodedHtml = WebUtility.HtmlDecode(dataEntryValue);
                 Console.WriteLine($"Data-Entry Value: {decodedHtml}");
 
-                var episode = JsonSerializer.Deserialize<Episode>(decodedHtml);
+                var episode = JsonSerializer.Deserialize<ParsedEpisode>(decodedHtml);
                 episodes.Add(episode);
             }
 
@@ -42,6 +43,28 @@ public class TitlePageParser
         {
             throw new ExtractorException("No episodes found with class 'b-episode'", null);
         }
+    }
+
+    public async Task GetEpisodes(IEnumerable<ParsedEpisode> parsedEpisodes)
+    {
+        var parsedEpisode = parsedEpisodes.First();
+
+        if (parsedEpisode.Id is null)
+        {
+            throw new ExtractorException("Episode UUID is missing", null);
+        }
+
+        string? episodeResponse = await LoadHtmlContent($"https://api.mujrozhlas.cz/episodes/{parsedEpisode.Uuid}");
+
+        if (episodeResponse is null)
+        {
+            throw new ExtractorException("Episode is missing", null);
+        }
+
+        var episodes = JsonSerializer.Deserialize<Episode>(episodeResponse);
+
+        var x = episodes.data;//["relationships"].serial.data.id;
+        //var t = x.relationships;
     }
 
     static async Task<string> LoadHtmlContent(string url)
