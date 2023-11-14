@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Data;
+namespace Mujrozhlas.Data;
 public class Serial
 {
     [JsonPropertyName("id")]

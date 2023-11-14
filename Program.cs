@@ -1,4 +1,4 @@
-﻿using Database;
+﻿using Mujrozhlas.Database;
 
 IDatabase database = new LiteDbDatabase();
 

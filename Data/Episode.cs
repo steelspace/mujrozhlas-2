@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Data;
+namespace Mujrozhlas.Data;
 public class Episode
 {
     public Episode(string id, string title, string shortTitle, int part, string serialId)

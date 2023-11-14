@@ -1,13 +1,12 @@
-namespace Extractor;
 
-using System.Dynamic;
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Data;
-using Extractor.Common;
+using Mujrozhlas.Data;
+using Mujrozhlas.Common;
 using HtmlAgilityPack;
 
+namespace Extractor;
 public class TitlePageParser
 {
     public async Task<IEnumerable<ParsedEpisode>> ExtractTitleInformation()
@@ -36,6 +35,12 @@ public class TitlePageParser
                 Console.WriteLine($"Data-Entry Value: {decodedHtml}");
 
                 var episode = JsonSerializer.Deserialize<ParsedEpisode>(decodedHtml);
+
+                if (episode is null)
+                {
+                    throw new ExtractorException("Episode is not parsed");
+                }
+                
                 episodes.Add(episode);
             }
 
@@ -43,7 +48,7 @@ public class TitlePageParser
         }
         else
         {
-            throw new ExtractorException("No episodes found with class 'b-episode'", null);
+            throw new ExtractorException("No episodes found with class 'b-episode'");
         }
     }
 
@@ -53,7 +58,7 @@ public class TitlePageParser
 
         if (parsedEpisode?.Id is null)
         {
-            throw new ExtractorException("Episode UUID is missing", null);
+            throw new ExtractorException("Episode UUID is missing");
         }
 
         string? episodeResponse = await LoadHtmlContent($"https://api.mujrozhlas.cz/episodes/{parsedEpisode.Uuid}");
@@ -69,12 +74,17 @@ public class TitlePageParser
         {
             var episodeNode = JsonNode.Parse(episodeResponse);
 
-            if (episodeNode["data"]["type"].GetValue<string>() != "episode")
+            if (episodeNode is null)
+            {
+                throw new ExtractorException("Missing 'Episode'", null);
+            }
+
+            if (episodeNode["data"]!["type"]!.GetValue<string>() != "episode")
             {
                 throw new ExtractorException("Wrong type of 'Episode'", null);
             }
 
-            serialId = episodeNode["data"]["relationships"]["serial"]["data"]["id"].GetValue<string>();
+            serialId = episodeNode["data"]!["relationships"]!["serial"]!["data"]!["id"]!.GetValue<string>();
         }
 
         catch (Exception ex)
@@ -86,7 +96,7 @@ public class TitlePageParser
 
         if (serialResponse is null)
         {
-            throw new ExtractorException("Serial is missing", null);
+            throw new ExtractorException("Serial is not parsed", null);
         }
 
         string title = String.Empty;
@@ -97,14 +107,19 @@ public class TitlePageParser
         {
             var serialNode = JsonNode.Parse(serialResponse);
 
-            if (serialNode["data"]["type"].GetValue<string>() != "serial")
+            if (serialNode is null)
+            {
+                throw new ExtractorException("Serial is missing", null);
+            }
+
+            if (serialNode["data"]!["type"]!.GetValue<string>() != "serial")
             {
                 throw new ExtractorException("Wrong type of 'Serial'", null);
             }
 
-            title = serialNode["data"]["attributes"]["title"].GetValue<string>();
-            shortTitle = serialNode["data"]["attributes"]["shortTitle"].GetValue<string>();
-            totalParts = serialNode["data"]["attributes"]["totalParts"].GetValue<int>();
+            title = serialNode["data"]!["attributes"]!["title"]!.GetValue<string>();
+            shortTitle = serialNode["data"]!["attributes"]!["shortTitle"]!.GetValue<string>();
+            totalParts = serialNode["data"]!["attributes"]!["totalParts"]!.GetValue<int>();
         }
 
         catch (Exception ex)
@@ -129,7 +144,7 @@ public class TitlePageParser
         try 
         {
             var episodesJsonNode = JsonNode.Parse(serialEpisodesResponse);
-            var episodeNodes = episodesJsonNode["data"].AsArray();
+            var episodeNodes = episodesJsonNode!["data"]!.AsArray();
 
             var episodes = new List<Episode>();
 
@@ -140,24 +155,25 @@ public class TitlePageParser
                 string shortTitle = String.Empty;
                 int part = 0;
 
-                if (episodeNode["type"].GetValue<string>() == "episode")
+                if (episodeNode is not null &&
+                     episodeNode["type"]!.GetValue<string>() == "episode")
                 {
-                    episodeId = episodeNode["id"].GetValue<string>();
-                    title = episodeNode["attributes"]["title"].GetValue<string>();
-                    shortTitle = episodeNode["attributes"]["shortTitle"].GetValue<string>();
-                    part = episodeNode["attributes"]["part"].GetValue<int>();
+                    episodeId = episodeNode["id"]!.GetValue<string>();
+                    title = episodeNode["attributes"]!["title"]!.GetValue<string>();
+                    shortTitle = episodeNode["attributes"]!["shortTitle"]!.GetValue<string>();
+                    part = episodeNode["attributes"]!["part"]!.GetValue<int>();
 
-                    var audioLinks = episodeNode["attributes"]["audioLinks"].AsArray();
+                    var audioLinks = episodeNode["attributes"]!["audioLinks"]!.AsArray();
 
                     var episode = new Episode(title, shortTitle, serialId, part, serialId);
 
                     foreach (var audioLink in audioLinks)
                     {
                         var audio = new AudioLink(
-                            audioLink["playableTill"].GetValue<DateTimeOffset>(),
-                            audioLink["variant"].GetValue<string>(),
-                            audioLink["duration"].GetValue<int>(),
-                            audioLink["url"].GetValue<string>()
+                            audioLink!["playableTill"]!.GetValue<DateTimeOffset>(),
+                            audioLink!["variant"]!.GetValue<string>(),
+                            audioLink!["duration"]!.GetValue<int>(),
+                            audioLink!["url"]!.GetValue<string>()
                         );
 
                         episode.AudioLinks.Add(audio);
@@ -187,7 +203,7 @@ public class TitlePageParser
             catch (HttpRequestException e)
             {
                 Console.WriteLine($"Error loading HTML content: {e.Message}");
-                return null;
+                return String.Empty;
             }
         }
     }

@@ -1,7 +1,8 @@
-using Data;
+using Mujrozhlas.Common;
+using Mujrozhlas.Data;
 using LiteDB;
 
-namespace Database;
+namespace Mujrozhlas.Database;
 public class LiteDbDatabase : IDatabase
 {
     const string fileName = "Mujrozhlas.db";
@@ -35,5 +36,36 @@ public class LiteDbDatabase : IDatabase
 
     public ILiteCollection<Serial> GetSerialDbCollection(LiteDatabase db) => db.GetCollection<Serial>("serial");
     public ILiteCollection<Episode> GetEpisodeDbCollection(LiteDatabase db) => db.GetCollection<Episode>("episode");
+    public ILiteCollection<Download> GetDownloadDbCollection(LiteDatabase db) => db.GetCollection<Download>("download");
 
+    public void InsertDownload(Download download)
+    {
+        using(var db = new LiteDatabase(fileName))
+        {
+            var downloadCollection = GetDownloadDbCollection(db);
+            downloadCollection.Insert(download);
+        }
+    }
+
+    public void SetDownloadFinished(string episodeId)
+    {
+        using(var db = new LiteDatabase(fileName))
+        {
+            var downloadCollection = GetDownloadDbCollection(db);
+            var download = downloadCollection.FindById(episodeId);
+
+            if (download == null)
+            {
+                throw new DownloadedException($"Download {episodeId} doesn't exist");
+            }
+
+            download.IsDownloaded = true;
+            downloadCollection.Update(download);
+        }
+    }
+
+    public Download GetNextDownload()
+    {
+        throw new NotImplementedException();
+    }
 }
