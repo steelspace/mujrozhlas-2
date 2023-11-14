@@ -3,16 +3,20 @@ using System.Text.Json.Serialization;
 namespace Data;
 public class Episode
 {
-    [JsonPropertyName("id")]
-    public string Id { get; set; }
-
-    public Episode(string id, string title, string shortTitle, int part)
+    public Episode(string id, string title, string shortTitle, int part, string serialId)
     {
         Id = id;
         Title = title;
         ShortTitle = shortTitle;
         Part = part;
+        SerialId = serialId;
     }
+
+    [JsonPropertyName("id")]
+    public string Id { get; set; }
+
+    [JsonPropertyName("serial-id")]
+    public string SerialId { get; set; }
 
     [JsonPropertyName("title")]
     public string Title { get; set; }

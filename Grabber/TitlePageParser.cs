@@ -149,7 +149,7 @@ public class TitlePageParser
 
                     var audioLinks = episodeNode["attributes"]["audioLinks"].AsArray();
 
-                    var episode = new Episode(title, shortTitle, serialId, part);
+                    var episode = new Episode(title, shortTitle, serialId, part, serialId);
 
                     foreach (var audioLink in audioLinks)
                     {
