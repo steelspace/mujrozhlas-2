@@ -2,6 +2,7 @@
 
 var parser = new Extractor.TitlePageParser();
 
-var episodes = await parser.ExtractTitleInformation();
-await parser.GetEpisodes(episodes);
-Console.WriteLine(episodes);
+var parsedEpisodes = await parser.ExtractTitleInformation();
+var serial = await parser.GetSerial(parsedEpisodes);
+var episodes = await parser.GetAvailableEpisodes(serial.Id);
+

@@ -3,6 +3,8 @@ namespace Extractor;
 using System.Dynamic;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using Data;
 using Extractor.Common;
 using HtmlAgilityPack;
 
@@ -45,11 +47,11 @@ public class TitlePageParser
         }
     }
 
-    public async Task GetEpisodes(IEnumerable<ParsedEpisode> parsedEpisodes)
+    public async Task<Serial> GetSerial(IEnumerable<ParsedEpisode> parsedEpisodes)
     {
-        var parsedEpisode = parsedEpisodes.First();
+        var parsedEpisode = parsedEpisodes.FirstOrDefault();
 
-        if (parsedEpisode.Id is null)
+        if (parsedEpisode?.Id is null)
         {
             throw new ExtractorException("Episode UUID is missing", null);
         }
@@ -61,31 +63,118 @@ public class TitlePageParser
             throw new ExtractorException("Episode is missing", null);
         }
 
-        var episode = JsonSerializer.Deserialize<Episode>(episodeResponse);
+        string serialId = String.Empty;
 
-        if (episode.data.Type != "episode")
+        try 
         {
-            throw new ExtractorException("Wrong type of 'Episode'", null);
+            var episodeNode = JsonNode.Parse(episodeResponse);
+
+            if (episodeNode["data"]["type"].GetValue<string>() != "episode")
+            {
+                throw new ExtractorException("Wrong type of 'Episode'", null);
+            }
+
+            serialId = episodeNode["data"]["relationships"]["serial"]["data"]["id"].GetValue<string>();
         }
 
-        if (episode.data.Relationships is null)
+        catch (Exception ex)
         {
-            throw new ExtractorException("Relationships is missing in 'Episode'", null);
+            throw new ExtractorException("Error in 'Episode'", ex);
         }
 
-        if (episode.data.Relationships.serial is null)
+        string? serialResponse = await LoadHtmlContent($"https://api.mujrozhlas.cz/serials/{serialId}");
+
+        if (serialResponse is null)
         {
-            throw new ExtractorException("Serial is missing in 'Relationships'", null);
+            throw new ExtractorException("Serial is missing", null);
         }
 
-        if (episode.data.Relationships.serial.data is null)
+        string title = String.Empty;
+        string shortTitle = String.Empty;
+        int totalParts = 0;
+
+        try 
         {
-            throw new ExtractorException("Data is missing in 'Serial'", null);
+            var serialNode = JsonNode.Parse(serialResponse);
+
+            if (serialNode["data"]["type"].GetValue<string>() != "serial")
+            {
+                throw new ExtractorException("Wrong type of 'Serial'", null);
+            }
+
+            title = serialNode["data"]["attributes"]["title"].GetValue<string>();
+            shortTitle = serialNode["data"]["attributes"]["shortTitle"].GetValue<string>();
+            totalParts = serialNode["data"]["attributes"]["totalParts"].GetValue<int>();
         }
 
-        var serialId = episode.data.Relationships.serial.data.id;
+        catch (Exception ex)
+        {
+            throw new ExtractorException("Error in 'Episode'", ex);
+        }
+
+        var serial = new Serial(serialId, title, shortTitle, totalParts);
+
+        return serial;
     }
 
+    public async Task<List<Episode>> GetAvailableEpisodes(string serialId)
+    {
+        string? serialEpisodesResponse = await LoadHtmlContent($"https://api.mujrozhlas.cz/serials/{serialId}/episodes");
+
+        if (serialEpisodesResponse is null)
+        {
+            throw new ExtractorException("Episodes are missing", null);
+        }
+
+        try 
+        {
+            var episodesJsonNode = JsonNode.Parse(serialEpisodesResponse);
+            var episodeNodes = episodesJsonNode["data"].AsArray();
+
+            var episodes = new List<Episode>();
+
+            foreach (var episodeNode in episodeNodes)
+            {
+                string episodeId = String.Empty;
+                string title = String.Empty;
+                string shortTitle = String.Empty;
+                int part = 0;
+
+                if (episodeNode["type"].GetValue<string>() == "episode")
+                {
+                    episodeId = episodeNode["id"].GetValue<string>();
+                    title = episodeNode["attributes"]["title"].GetValue<string>();
+                    shortTitle = episodeNode["attributes"]["shortTitle"].GetValue<string>();
+                    part = episodeNode["attributes"]["part"].GetValue<int>();
+
+                    var audioLinks = episodeNode["attributes"]["audioLinks"].AsArray();
+
+                    var episode = new Episode(title, shortTitle, serialId, part);
+
+                    foreach (var audioLink in audioLinks)
+                    {
+                        var audio = new AudioLink(
+                            audioLink["playableTill"].GetValue<DateTimeOffset>(),
+                            audioLink["variant"].GetValue<string>(),
+                            audioLink["duration"].GetValue<int>(),
+                            audioLink["url"].GetValue<string>()
+                        );
+
+                        episode.AudioLinks.Add(audio);
+                    }
+
+                    episodes.Add(episode);
+                }
+            }
+
+            return episodes;
+        }
+
+        catch (Exception ex)
+        {
+            throw new ExtractorException("Error in 'Episode'", ex);
+        }
+    }
     static async Task<string> LoadHtmlContent(string url)
     {
         using (HttpClient client = new HttpClient())
