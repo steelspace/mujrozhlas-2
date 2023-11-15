@@ -103,4 +103,10 @@ public class LiteDbDatabase : IDatabase, IDisposable
             db.Dispose();
         }
     }
+
+    public List<AudioLink> GetAudioLinks(string episodeId)
+    {
+        var audioLinksCollection = GetAudioLinksDbCollection();
+        return audioLinksCollection.Find(d => d.EpisodeId == episodeId).ToList();
+    }
 }

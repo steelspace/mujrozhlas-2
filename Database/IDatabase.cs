@@ -16,4 +16,5 @@ public interface IDatabase : IDisposable
     List<Serial> GetAllSerials();
 
     List<Episode> GetEpisodes(string serialId);
+    List<AudioLink> GetAudioLinks(string episodeId);
 }

@@ -26,7 +26,8 @@ public class Queuer
 
                 if (download is null)
                 {
-                    var audioLink = episode.AudioLinks.Where(al => al.Variant == "hls").FirstOrDefault();
+                    var audioLinks = database.GetAudioLinks(episode.Id);
+                    var audioLink = audioLinks.Where(al => al.Variant == "hls").FirstOrDefault();
 
                     if (audioLink is null)
                     {
