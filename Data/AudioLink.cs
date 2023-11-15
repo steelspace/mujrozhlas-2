@@ -1,25 +1,33 @@
-using System.Text.Json.Serialization;
+using LiteDB;
 
 namespace Mujrozhlas.Data;
 public class AudioLink
 {
-    public AudioLink(DateTimeOffset playableTill, string variant, int durationSeconds, string url)
+    public AudioLink(string id, string episodeId, DateTimeOffset playableTill, string variant, int durationSeconds, string url)
     {
+        Id = id;
+        EpisodeId = episodeId;
         PlayableTill = playableTill;
         Variant = variant;
         DurationSeconds = durationSeconds;
         Url = url;
     }
 
-    [JsonPropertyName("playable-till")]
+    [BsonField("id")]
+    public string Id { get; set; }
+
+    [BsonField("episode-id")]
+    public string EpisodeId { get; set; }
+
+    [BsonField("playable-till")]
     public DateTimeOffset PlayableTill { get; set; }
 
-    [JsonPropertyName("variant")]
+    [BsonField("variant")]
     public string Variant { get; set; }
 
-    [JsonPropertyName("duration-seconds")]
+    [BsonField("duration-seconds")]
     public int DurationSeconds { get; set; }
 
-    [JsonPropertyName("url")]
+    [BsonField("url")]
     public string Url { get; set; }
 }

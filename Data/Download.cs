@@ -1,10 +1,10 @@
-using System.Text.Json.Serialization;
+using LiteDB;
 
 namespace Mujrozhlas.Data;
 
 public class Download
 {
-    [JsonPropertyName("id")]
+    [BsonField("id")]
     public string Id { get; set; }
 
     public Download(string id, string url)
@@ -13,9 +13,9 @@ public class Download
         Url = url;
     }
 
-    [JsonPropertyName("is-downloaded")]
+    [BsonField("is-downloaded")]
     public bool IsDownloaded { get; set; } = false;
 
-    [JsonPropertyName("url")]
+    [BsonField("url")]
     public string Url { get; set; }
 }

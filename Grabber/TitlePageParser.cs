@@ -9,11 +9,9 @@ using HtmlAgilityPack;
 namespace Extractor;
 public class TitlePageParser
 {
-    public async Task<IEnumerable<ParsedEpisode>> ExtractTitleInformation()
+    public async Task<IEnumerable<ParsedEpisode>> ExtractTitleInformation(string url)
     {
         var episodes = new List<ParsedEpisode>();
-
-        string url = "https://www.mujrozhlas.cz/podvecerni-cteni/alena-mornstajnova-listopad-co-kdyby-v-listopadu-1989-dopadlo-jinak";
 
         // Load HTML content from the URL
         string htmlContent = await LoadHtmlContent(url);
@@ -169,9 +167,13 @@ public class TitlePageParser
 
                     foreach (var audioLink in audioLinks)
                     {
+                        string variant = audioLink!["variant"]!.GetValue<string>();
+
                         var audio = new AudioLink(
+                            $"{episodeId}/{variant}",
+                            episodeId,
                             audioLink!["playableTill"]!.GetValue<DateTimeOffset>(),
-                            audioLink!["variant"]!.GetValue<string>(),
+                            variant,
                             audioLink!["duration"]!.GetValue<int>(),
                             audioLink!["url"]!.GetValue<string>()
                         );

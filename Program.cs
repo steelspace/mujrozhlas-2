@@ -1,65 +1,37 @@
 ﻿using Mujrozhlas.Database;
 using CommandLine;
-using ConsoleTables;
-using CommunityToolkit.Common;
+using Mujrozhlas.Commander;
 
 internal class Program
 {
-    public class Options
+    [Verb("list", HelpText = "List of requested serials.")]
+    class ListOptions
     {
-        [Option('l', "list-requested", Required = false, HelpText = "List of requested serials.")]
-        public bool ListRequestdeSerials { get; set; }
+    }
 
-        [Option('q', "queue-episodes", Required = false, HelpText = "Queue episodes that are available for download.")]
-        public bool QueueEpisodes { get; set; }
+    [Verb("queue", HelpText = "Queue episodes that are available for download.")]
+    class QueueOptions
+    {
+    }    
+
+    [Verb("add", HelpText = "Add serial to the database. Pass an URL from mujrozhlas.cz.")]
+    class AddOptions
+    {
+        [Option('u', "url", Required = true, HelpText = "Serial URL from mujrozhlas.cz web site.")]
+        public string SerialUrl { get; set; } = String.Empty;
     }
 
     private static void Main(string[] args)
     {
-        IDatabase database = new LiteDbDatabase();
+        using IDatabase database = new LiteDbDatabase();
+        var commander = new Commander(database);
 
-        Parser.Default.ParseArguments<Options>(args)
-            .WithParsed(o =>
-            {
-                if (o.ListRequestdeSerials)
-                {
-                    var requestedSerials = database.GetReqestedSerials();
-                    var table = new ConsoleTable("Serial", "Parts");
-                    
-                    foreach (var serial in requestedSerials)
-                    {
-                        table.AddRow(serial.Title.Truncate(80), serial.TotalParts);
-                    }
-
-                    table.Write(Format.Minimal);
-                    Console.WriteLine();
-                }
-
-                if (o.QueueEpisodes)
-                {
-                    var requestedSerials = database.GetReqestedSerials();
-                    var table = new ConsoleTable("Serial", "Parts");
-                    
-                    foreach (var serial in requestedSerials)
-                    {
-                        table.AddRow(serial.Title.Truncate(80), serial.TotalParts);
-                    }
-
-                    table.Write(Format.Minimal);
-                    Console.WriteLine();
-                }                
-            });
-
-        // var parser = new Extractor.TitlePageParser();
-        // var parsedEpisodes = await parser.ExtractTitleInformation();
-
-        // var serial = await parser.GetSerial(parsedEpisodes);
-        // database.SaveSerial(serial);
-
-        // var episodes = await parser.GetAvailableEpisodes(serial.Id);
-        // database.SaveEpisodes(episodes);
-
-        // var t = database.LoadSerial(serial.Id);
-        // Console.WriteLine(t);
+        Parser.Default.ParseArguments<QueueOptions, ListOptions, AddOptions>(args)
+        .MapResult(
+            // (Options opts) => Run(opts),
+            (AddOptions opts) => commander.RunAdd(opts.SerialUrl),
+            (ListOptions opts) => commander.RunList(),
+            (QueueOptions opts) => commander.RunQueue(),
+            errs => 1);
     }
 }
