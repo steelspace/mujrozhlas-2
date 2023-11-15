@@ -68,4 +68,13 @@ public class LiteDbDatabase : IDatabase
     {
         throw new NotImplementedException();
     }
+
+    public List<Serial> GetReqestedSerials()
+    {
+        using(var db = new LiteDatabase(fileName))
+        {
+            var episodeCollection = GetSerialDbCollection(db);
+            return episodeCollection.FindAll().ToList();
+        }  
+    }
 }

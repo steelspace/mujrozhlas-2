@@ -11,4 +11,6 @@ public interface IDatabase
     Download GetNextDownload();
 
     void SaveEpisodes(IEnumerable<Episode> episodes);
+
+    List<Serial> GetReqestedSerials();
 }
