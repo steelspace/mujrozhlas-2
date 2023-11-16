@@ -43,6 +43,22 @@ public static class FileManager
         return path;
     }
 
+    public static string GetAudioBookFileName(Serial serial)
+    {
+        string serialFolder = EnsureSerialFolder(serial.Id);
+
+        string path = Path.Combine(serialFolder, new SanitizedFileName(serial.Id).Value + "-book" + AudioFileSuffix);        
+        return path;
+    }
+
+    public static string GetNiceAudioBookFileName(Serial serial)
+    {
+        string serialFolder = EnsureSerialFolder(serial.Id);
+
+        string path = Path.Combine(serialFolder, new SanitizedFileName(serial.Title).Value + AudioFileSuffix);        
+        return path;
+    }
+
     public static bool IsEpisodeDownloaded(Episode episode)
     {
         string fileName = GetFileName(episode);
@@ -81,5 +97,15 @@ public static class FileManager
         }
 
         return path;
+    }
+
+    public static void RenameAudioBook(Serial serial)
+    {
+        string currentFileName = GetAudioBookFileName(serial);
+
+        if (File.Exists(currentFileName))
+        {
+            File.Move(currentFileName, GetNiceAudioBookFileName(serial), true);
+        }
     }
 }

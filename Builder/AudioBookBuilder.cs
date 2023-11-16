@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using MujRozhlas.Data;
 using MujRozhlas.Database;
 using MujRozhlas.Downloader;
@@ -45,17 +46,17 @@ public class AudioBookBuilder
             + $" -vn -y -b:a 128k -acodec aac -ac 2 {Path.GetFileName(outputFileName)}");
 
         string workingFolder = FileManager.GetFullPathToSerialFolder(serial);
-        runner.Run(buildCommand, workingFolder);
+        //runner.Run(buildCommand, workingFolder);
 
         // attach title and cover art
-        string attachCommand = $"ffmpeg -i {Path.GetFileName(outputFileName)} -i {Path.GetFileName(coverArtFilePath)}" 
+        string attachCommand = $"ffmpeg -y -i {Path.GetFileName(outputFileName)} -i {Path.GetFileName(coverArtFilePath)}" 
                         + $" -map 1 -map 0 -c copy -disposition:0 attached_pic"
-                        + $" -metadata title=\"{serial.ShortTitle}\"" 
-                        // + (author is not null ? $" -metadata artist=\"{author}\"" : "")
-                        + $" \"_{Path.GetFileName(outputFileName)}\""
-                        + $" && rm \"{Path.GetFileName(outputFileName)}\" && mv \"_{Path.GetFileName(outputFileName)}\" \"{Path.GetFileName(outputFileName)}\"";
+                        + $" _{Path.GetFileName(outputFileName)}"
+                        + $" && rm {Path.GetFileName(outputFileName)} && mv _{Path.GetFileName(outputFileName)} {Path.GetFileName(outputFileName)}";
 
         runner.Run(attachCommand, workingFolder);
+
+        FileManager.RenameAudioBook(serial);
     }
 
     string? CreateList(Serial serial)
@@ -108,7 +109,22 @@ public class AudioBookBuilder
 
         var builder = new StringBuilder();
         builder.AppendLine(";FFMETADATA1");
-        builder.AppendLine($"title={NormalizeText(serial.ShortTitle)}");
+
+        const string pattern = @"(.*?):(.*)";
+        var match = Regex.Match(serial.ShortTitle, pattern);
+        
+        if (match.Groups.Count == 3)
+        {
+            string author = match.Groups[1].Value;
+            string serialTitle = match.Groups[2].Value;
+
+            builder.AppendLine($"artist={author}");
+            builder.AppendLine($"title={NormalizeText(serial.ShortTitle)}");
+        }
+        else
+        {
+            builder.AppendLine($"title={NormalizeText(serial.ShortTitle)}");
+        }
 
         var episodes = database.GetEpisodes(serial.Id);
 
