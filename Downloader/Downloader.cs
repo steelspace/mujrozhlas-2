@@ -50,6 +50,11 @@ public class Downloader
         string path = Path.Combine(serialFolder, new SanitizedFileName(episode.Id).Value + ".mp3");
 
         string command = $"ffmpeg -i \"{url}\" -bsf:a aac_adtstoasc -vcodec copy -y -c copy -crf 50 -f mp4 \"{path}\"";
-        var t = runner.Run(command);
+        runner.Run(command);
+
+        if (File.Exists(path))
+        {
+            database.SetDownloadFinished(episode.Id);
+        }
     }
 }

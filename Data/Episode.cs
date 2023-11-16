@@ -28,4 +28,7 @@ public class Episode
 
     [JsonPropertyName("audio-links")]
     public List<AudioLink> AudioLinks  { get; set; } = new List<AudioLink>();
+
+    [JsonPropertyName("is-downloaded")]
+    public bool IsDownloaded { get; set; }
 }

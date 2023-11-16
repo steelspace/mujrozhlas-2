@@ -59,13 +59,14 @@ public class LiteDbDatabase : IDatabase
             var downloadCollection = GetDownloadDbCollection(db);
             var download = downloadCollection.FindById(episodeId);
 
-            if (download == null)
-            {
-                throw new DownloadedException($"Download {episodeId} doesn't exist");
-            }
-
             download.IsDownloaded = true;
             downloadCollection.Update(download);
+
+            var episodesCollection = GetEpisodeDbCollection(db);
+            var episode = episodesCollection.FindById(episodeId);
+
+            episode.IsDownloaded = true;
+            episodesCollection.Update(episode);
         }
     }
 
