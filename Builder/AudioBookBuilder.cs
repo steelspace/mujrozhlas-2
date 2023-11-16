@@ -44,7 +44,18 @@ public class AudioBookBuilder
         string buildCommand = String.Format($"ffmpeg -f concat -safe 0 -i {Path.GetFileName(listFilePath)} -i {Path.GetFileName(metadataFilePath)}"
             + $" -vn -y -b:a 128k -acodec aac -ac 2 {Path.GetFileName(outputFileName)}");
 
-        runner.Run(buildCommand, FileManager.GetFullPathToSerialFolder(serial));
+        string workingFolder = FileManager.GetFullPathToSerialFolder(serial);
+        runner.Run(buildCommand, workingFolder);
+
+        // attach title and cover art
+        string attachCommand = $"ffmpeg -i {Path.GetFileName(outputFileName)} -i {Path.GetFileName(coverArtFilePath)}" 
+                        + $" -map 1 -map 0 -c copy -disposition:0 attached_pic"
+                        + $" -metadata title=\"{serial.ShortTitle}\"" 
+                        // + (author is not null ? $" -metadata artist=\"{author}\"" : "")
+                        + $" \"_{Path.GetFileName(outputFileName)}\""
+                        + $" && rm \"{Path.GetFileName(outputFileName)}\" && mv \"_{Path.GetFileName(outputFileName)}\" \"{Path.GetFileName(outputFileName)}\"";
+
+        runner.Run(attachCommand, workingFolder);
     }
 
     string? CreateList(Serial serial)
