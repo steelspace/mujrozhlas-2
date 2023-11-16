@@ -15,6 +15,7 @@ public interface IDatabase
 
     List<Serial> GetAllSerials();
     List<AudioLink> GetAllAudioLinks();
+    List<Download> GetAllDownloads();
 
     List<Episode> GetEpisodes(string serialId);
     List<AudioLink> GetAudioLinks(string episodeId);

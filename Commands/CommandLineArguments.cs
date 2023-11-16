@@ -6,7 +6,7 @@ namespace Mujrozhlas.CommandLineArguments;
 [Verb("list", HelpText = "List information in the database.")]
 public class ListOptions
 {
-    [Option('s', "serials", Default = true, HelpText = "List requested serials.")]
+    [Option('s', "serials", HelpText = "List requested serials.")]
     public bool Serials { get; set; }
 
     [Option('d', "download-queue", HelpText = "List episodes in the download queue.")]

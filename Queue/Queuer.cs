@@ -20,31 +20,35 @@ public class Queuer
         {
             var episodes = database.GetEpisodes(serial.Id);
 
-            foreach (var episode in episodes)
+            foreach (var episode in episodes.OrderBy(e => e.Part))
             {
                 var download = database.GetDownload(episode.Id);
 
-                if (download is null)
+                if (download is not null)
                 {
-                    var audioLinks = database.GetAudioLinks(episode.Id);
-                    var audioLink = audioLinks.Where(al => al.Variant == "hls").FirstOrDefault();
-
-                    if (audioLink is null)
-                    {
-                        audioLink = episode.AudioLinks.FirstOrDefault();
-                    }
-
-                    if (audioLink is null)
-                    {
-                        Console.WriteLine($"No audio link found for episode {episode.Id} of serial {episode.SerialId}");
-                        continue;
-                    }
-
-                    download = new Download(episode.Id, audioLink.Url);
-                    database.InsertDownload(download);
-
-                    Console.WriteLine($"URL {download.Url} for episode {episode.Part} of {serial.ShortTitle}");
+                    Console.WriteLine($"Episode {episode.Part} of {serial.ShortTitle} is already queued for download.");
+                    continue;
                 }
+
+                var audioLinks = database.GetAudioLinks(episode.Id);
+                var audioLink = audioLinks.Where(al => al.Variant == "hls").FirstOrDefault();
+
+                if (audioLink is null)
+                {
+                    audioLink = episode.AudioLinks.FirstOrDefault();
+                }
+
+                if (audioLink is null)
+                {
+                    Console.WriteLine($"No audio link found yet for episode {episode.Part} of serial {serial.ShortTitle}");
+                    continue;
+                }
+
+                download = new Download(episode.Id, audioLink.Url);
+                database.InsertDownload(download);
+
+                Console.WriteLine($"URL {download.Url} for episode {episode.Part} of {serial.ShortTitle}");
+
             }
         }
     }

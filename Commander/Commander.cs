@@ -58,6 +58,13 @@ public class Commander
     void ListSerials()
     {
         var requestedSerials = database.GetAllSerials();
+
+        if (requestedSerials.Count == 0)
+        {
+            Console.WriteLine("No serials are requested.");
+            return;
+        }
+
         var table = new Table("Serial", "Id", "Parts")
         {
             Config = TableConfiguration.Markdown()
@@ -73,16 +80,22 @@ public class Commander
 
     void ListDownloadQueue()
     {
-        var audioLinks = database.GetAllAudioLinks();
+        var downloads = database.GetAllDownloads();
+
+        if (downloads.Count == 0)
+        {
+            Console.WriteLine("No downloads in the queue.");
+            return;
+        }
 
         var table = new Table("Episode ID", "URL")
         {
             Config = TableConfiguration.Markdown()
         };
 
-        foreach (var audioLink in audioLinks.OrderBy(a => a.EpisodeId))
+        foreach (var download in downloads.OrderBy(d => d.Id))
         {
-            table.AddRow(audioLink.EpisodeId, audioLink.Url);
+            table.AddRow(download.Id, download.Url);
         }
 
         Console.WriteLine(table.ToString());   

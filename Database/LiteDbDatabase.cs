@@ -127,4 +127,13 @@ public class LiteDbDatabase : IDatabase
             return audioLinksCollection.FindAll().ToList();
         }
     }
+
+    public List<Download> GetAllDownloads()
+    {
+        using (var db = new LiteDatabase(fileName))
+        {
+            var downloadsCollection = GetDownloadDbCollection(db);
+            return downloadsCollection.FindAll().ToList();
+        }
+    }
 }
