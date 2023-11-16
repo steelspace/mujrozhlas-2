@@ -1,5 +1,5 @@
+using BetterConsoleTables;
 using CommunityToolkit.Common;
-using ConsoleTables;
 using Mujrozhlas.Database;
 
 namespace Mujrozhlas.Commander;
@@ -43,15 +43,15 @@ public class Commander
     public int RunList()
     {
         var requestedSerials = database.GetAllSerials();
-        var table = new ConsoleTable("Serial", "Id", "Parts");
+        var table = new Table("Serial", "Id", "Parts");
+        table.Config = TableConfiguration.Markdown();
 
         foreach (var serial in requestedSerials)
         {
             table.AddRow(serial.Title.Truncate(80, true), serial.Id, serial.TotalParts);
         }
 
-        table.Write(Format.Minimal);
-        Console.WriteLine();        
+        Console.Write(table.ToString());      
         return 0;
     }
 }
