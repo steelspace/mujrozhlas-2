@@ -21,10 +21,6 @@ public class LiteDbDatabase : IDatabase
         {
             var episodeCollection = GetEpisodeDbCollection(db);
             episodeCollection.Upsert(episodes);
-
-            var audioLinks = episodes.SelectMany(e => e.AudioLinks).ToList();
-            var audioLinksCollection = GetAudioLinksDbCollection(db);
-            audioLinksCollection.Upsert(audioLinks);
         }
     }
 
@@ -40,7 +36,6 @@ public class LiteDbDatabase : IDatabase
     public ILiteCollection<Serial> GetSerialDbCollection(LiteDatabase db) => db.GetCollection<Serial>("serial");
     public ILiteCollection<Episode> GetEpisodeDbCollection(LiteDatabase db) => db.GetCollection<Episode>("episode");
     public ILiteCollection<Download> GetDownloadDbCollection(LiteDatabase db) => db.GetCollection<Download>("download");
-    public ILiteCollection<AudioLink> GetAudioLinksDbCollection(LiteDatabase db) => db.GetCollection<AudioLink>("audiolink");
 
     public void InsertDownload(Download download)
     {
@@ -67,11 +62,6 @@ public class LiteDbDatabase : IDatabase
             episode.IsDownloaded = true;
             episodesCollection.Update(episode);
         }
-    }
-
-    public Download? GetNextDownload()
-    {
-        throw new NotImplementedException();
     }
 
     public List<Serial> GetAllSerials()
@@ -114,8 +104,8 @@ public class LiteDbDatabase : IDatabase
     {
         using (var db = new LiteDatabase(fileName))
         {
-            var audioLinksCollection = GetAudioLinksDbCollection(db);
-            return audioLinksCollection.Find(d => d.EpisodeId == episodeId).ToList();
+            var episode = GetEpisode(episodeId);
+            return episode.AudioLinks;
         }
     }
 
@@ -123,8 +113,18 @@ public class LiteDbDatabase : IDatabase
     {
         using (var db = new LiteDatabase(fileName))
         {
-            var audioLinksCollection = GetAudioLinksDbCollection(db);
-            return audioLinksCollection.FindAll().ToList();
+            var episodes = GetAllEpisodes();
+
+            return episodes.SelectMany(e => e.AudioLinks).ToList();
+        }
+    }
+
+    public List<Episode> GetAllEpisodes()
+    {
+        using (var db = new LiteDatabase(fileName))
+        {
+            var episodesCollection = GetEpisodeDbCollection(db);
+            return episodesCollection.FindAll().ToList();
         }
     }
 

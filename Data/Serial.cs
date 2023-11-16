@@ -6,13 +6,14 @@ public class Serial
     [JsonPropertyName("id")]
     public string Id { get; set; }
 
-    public Serial(string id, string title, string shortTitle, int totalParts, string coverArtUrl)
+    public Serial(string id, string title, string shortTitle, int totalParts, string coverArtUrl, DateTimeOffset updated)
     {
         Id = id;
         Title = title;
         ShortTitle = shortTitle;
         TotalParts = totalParts;
         CoverArtUrl = coverArtUrl;
+        Updated = updated;
     }
 
     [JsonPropertyName("title")]
@@ -26,4 +27,7 @@ public class Serial
 
     [JsonPropertyName("cover-art-url")]
     public string CoverArtUrl { get; set; }
+
+    [JsonPropertyName("updated")]
+    public DateTimeOffset Updated { get; set; } = DateTimeOffset.MinValue;
 }

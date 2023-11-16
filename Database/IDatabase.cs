@@ -9,7 +9,6 @@ public interface IDatabase
     void InsertDownload(Download download);
     void SetDownloadFinished(string episodeId);
     Download? GetDownload(string episodeId);
-    Download? GetNextDownload();
 
     void SaveEpisodes(IEnumerable<Episode> episodes);
 

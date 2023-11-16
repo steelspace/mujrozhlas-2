@@ -128,7 +128,7 @@ public class TitlePageParser
             throw new ExtractorException("Error in 'Episode'", ex);
         }
 
-        var serial = new Serial(serialId, title, shortTitle, totalParts, coverArtUrl);
+        var serial = new Serial(serialId, title, shortTitle, totalParts, coverArtUrl, DateTimeOffset.Now);
 
         return serial;
     }
@@ -151,9 +151,12 @@ public class TitlePageParser
 
             foreach (var episodeNode in episodeNodes)
             {
-                string episodeId = String.Empty;
-                string title = String.Empty;
-                string shortTitle = String.Empty;
+                string episodeId = string.Empty;
+                string title = string.Empty;
+                string shortTitle = string.Empty;
+                DateTimeOffset since = DateTimeOffset.Now;
+                DateTimeOffset till = DateTimeOffset.Now;
+                DateTimeOffset updated = DateTimeOffset.Now;
                 int part = 0;
 
                 if (episodeNode is not null &&
@@ -164,9 +167,13 @@ public class TitlePageParser
                     shortTitle = episodeNode["attributes"]!["shortTitle"]!.GetValue<string>();
                     part = episodeNode["attributes"]!["part"]!.GetValue<int>();
 
+                    since = episodeNode["attributes"]!["since"]!.GetValue<DateTimeOffset>();
+                    till = episodeNode["attributes"]!["till"]!.GetValue<DateTimeOffset>();
+                    updated = episodeNode["attributes"]!["updated"]!.GetValue<DateTimeOffset>();
+
                     var audioLinks = episodeNode["attributes"]!["audioLinks"]!.AsArray();
 
-                    var episode = new Episode(episodeId, title, shortTitle, part, serialId);
+                    var episode = new Episode(episodeId, title, shortTitle, part, serialId, since, till, updated);
 
                     foreach (var audioLink in audioLinks)
                     {
@@ -196,6 +203,7 @@ public class TitlePageParser
             throw new ExtractorException("Error in 'Episode'", ex);
         }
     }
+   
     static async Task<string> LoadHtmlContent(string url)
     {
         using (HttpClient client = new HttpClient())
@@ -208,7 +216,7 @@ public class TitlePageParser
             catch (HttpRequestException e)
             {
                 Console.WriteLine($"Error loading HTML content: {e.Message}");
-                return String.Empty;
+                return string.Empty;
             }
         }
     }
