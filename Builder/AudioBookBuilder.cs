@@ -25,7 +25,6 @@ public class AudioBookBuilder
 
         var metadataFile = $"{prefix}-metadata.txt";
         var coverArtFile = $"{prefix}-cover.jpg";
-        var outputFileName = $"{prefix}-book.mp4";
         var listFileName = $"{prefix}-list.txt";
 
         var serialFileNames = CreateList(serial);
@@ -40,13 +39,21 @@ public class AudioBookBuilder
         string coverArtFilePath = FileManager.DownloadImageToOutputFilder(serial, coverArtFile);
 
         string listFilePath = FileManager.WriteBuilderTextFile(serial, listFileName, serialFileNames);
+        string outputFileName = FileManager.GetAudioBookFileName(serial);
+        string niceOutputFileName = FileManager.GetNiceAudioBookFileName(serial);
+
+        if (File.Exists(niceOutputFileName))
+        {
+            Console.WriteLine($"Audiobook '{serial.ShortTitle}' is already generated.");
+            return;
+        }
 
         // build
         string buildCommand = String.Format($"ffmpeg -f concat -safe 0 -i {Path.GetFileName(listFilePath)} -i {Path.GetFileName(metadataFilePath)}"
             + $" -vn -y -b:a 128k -acodec aac -ac 2 {Path.GetFileName(outputFileName)}");
 
         string workingFolder = FileManager.GetFullPathToSerialFolder(serial);
-        //runner.Run(buildCommand, workingFolder);
+        runner.Run(buildCommand, workingFolder);
 
         // attach title and cover art
         string attachCommand = $"ffmpeg -y -i {Path.GetFileName(outputFileName)} -i {Path.GetFileName(coverArtFilePath)}" 
@@ -57,6 +64,8 @@ public class AudioBookBuilder
         runner.Run(attachCommand, workingFolder);
 
         FileManager.RenameAudioBook(serial);
+
+        Console.WriteLine($"Audio book {niceOutputFileName} created.");
     }
 
     string? CreateList(Serial serial)

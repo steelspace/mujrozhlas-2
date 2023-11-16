@@ -11,7 +11,7 @@
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net8.0/mujrozhlas-2.dll",
-            // "args": ["add", "-uhttps://www.mujrozhlas.cz/povidka/andel-rukavice-ctyri-andele-styky-znamosti-poslechnete-si-povidky-jiriho-danicka"],
+            // "args": ["add", "-uhttps://www.mujrozhlas.cz/hra-pro-pametniky/fantasmata-stereofonni-kolaz-z-fantastickych-povidek-klasiku-svetove-literatury"],
             // "args": ["queue"],
             // "args": ["download"],
             "args": ["build"],
