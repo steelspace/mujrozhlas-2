@@ -6,12 +6,13 @@ public class Serial
     [JsonPropertyName("id")]
     public string Id { get; set; }
 
-    public Serial(string id, string title, string shortTitle, int totalParts)
+    public Serial(string id, string title, string shortTitle, int totalParts, string coverArtUrl)
     {
         Id = id;
         Title = title;
         ShortTitle = shortTitle;
         TotalParts = totalParts;
+        CoverArtUrl = coverArtUrl;
     }
 
     [JsonPropertyName("title")]
@@ -22,4 +23,7 @@ public class Serial
 
     [JsonPropertyName("total-parts")]
     public int TotalParts { get; set; }
+
+    [JsonPropertyName("cover-art-url")]
+    public string CoverArtUrl { get; set; }
 }

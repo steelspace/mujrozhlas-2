@@ -33,8 +33,8 @@ public class LiteDbDatabase : IDatabase
     {
         using (var db = new LiteDatabase(fileName))
         {
-            var episodeCollection = GetSerialDbCollection(db);
-            episodeCollection.Upsert(serial);
+            var serialsCollection = GetSerialDbCollection(db);
+            serialsCollection.Upsert(serial);
         }
     }
 

@@ -37,12 +37,7 @@ public class Queuer
                 }
 
                 var audioLinks = database.GetAudioLinks(episode.Id);
-                var audioLink = audioLinks.Where(al => al.Variant == "hls").FirstOrDefault();
-
-                if (audioLink is null)
-                {
-                    audioLink = episode.AudioLinks.FirstOrDefault();
-                }
+                var audioLink = GetPreferredAudioLink(audioLinks);
 
                 if (audioLink is null)
                 {
@@ -56,5 +51,17 @@ public class Queuer
                 Console.WriteLine($"Episode {episode.Part} of {serial.ShortTitle} is queued for download.");
             }
         }
+    }
+
+    public static AudioLink? GetPreferredAudioLink(List<AudioLink> audioLinks)
+    {
+        var audioLink = audioLinks.Where(al => al.Variant == "hls").FirstOrDefault();
+
+        if (audioLink is null)
+        {
+            audioLink = audioLinks.FirstOrDefault();
+        }
+
+        return audioLink;
     }
 }

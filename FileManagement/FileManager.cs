@@ -23,11 +23,13 @@ public static class FileManager
         return serialFolder;
     }
 
+    static string AudioFileSuffix = ".mp4";
+
     public static string GetFileName(Episode episode)
     {
         string serialFolder = EnsureSerialFolder(episode.SerialId);
 
-        string path = Path.Combine(serialFolder, new SanitizedFileName(episode.Id).Value + ".mp4");        
+        string path = Path.Combine(serialFolder, new SanitizedFileName(episode.Id).Value + AudioFileSuffix);        
         return path;
     }
 }

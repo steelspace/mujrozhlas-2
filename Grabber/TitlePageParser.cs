@@ -101,6 +101,8 @@ public class TitlePageParser
         string title;
         string shortTitle;
         int totalParts;
+        string coverArtUrl;
+
         try
         {
             var serialNode = JsonNode.Parse(serialResponse);
@@ -118,6 +120,7 @@ public class TitlePageParser
             title = serialNode["data"]!["attributes"]!["title"]!.GetValue<string>();
             shortTitle = serialNode["data"]!["attributes"]!["shortTitle"]!.GetValue<string>();
             totalParts = serialNode["data"]!["attributes"]!["totalParts"]!.GetValue<int>();
+            coverArtUrl = serialNode["data"]!["attributes"]!["asset"]!["url"]!.GetValue<string>();
         }
 
         catch (Exception ex)
@@ -125,7 +128,7 @@ public class TitlePageParser
             throw new ExtractorException("Error in 'Episode'", ex);
         }
 
-        var serial = new Serial(serialId, title, shortTitle, totalParts);
+        var serial = new Serial(serialId, title, shortTitle, totalParts, coverArtUrl);
 
         return serial;
     }
