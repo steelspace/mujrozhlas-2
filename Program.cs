@@ -1,26 +1,10 @@
 ﻿using Mujrozhlas.Database;
 using CommandLine;
 using Mujrozhlas.Commander;
+using Mujrozhlas.CommandLineArguments;
 
 internal class Program
 {
-    [Verb("list", HelpText = "List of requested serials.")]
-    class ListOptions
-    {
-    }
-
-    [Verb("queue", HelpText = "Queue episodes that are available for download.")]
-    class QueueOptions
-    {
-    }    
-
-    [Verb("add", HelpText = "Add serial to the database. Pass an URL from mujrozhlas.cz.")]
-    class AddOptions
-    {
-        [Option('u', "url", Required = true, HelpText = "Serial URL from mujrozhlas.cz web site.")]
-        public string SerialUrl { get; set; } = String.Empty;
-    }
-
     private static void Main(string[] args)
     {
         IDatabase database = new LiteDbDatabase();
@@ -28,10 +12,9 @@ internal class Program
 
         Parser.Default.ParseArguments<QueueOptions, ListOptions, AddOptions>(args)
         .MapResult(
-            // (Options opts) => Run(opts),
-            (AddOptions opts) => commander.RunAdd(opts.SerialUrl),
-            (ListOptions opts) => commander.RunList(),
-            (QueueOptions opts) => commander.RunQueue(),
+            (AddOptions opts) => commander.RunAdd(opts),
+            (ListOptions opts) => commander.RunList(opts),
+            (QueueOptions opts) => commander.RunQueue(opts),
             errs => 1);
     }
 }

@@ -24,13 +24,14 @@ public class TitlePageParser
 
         if (episodeNodes != null)
         {
+            Console.WriteLine($"Episodes found, parsing continues: {url}");
+
             foreach (HtmlNode episodeNode in episodeNodes)
             {
                 // Get the data-entry attribute value
                 string dataEntryValue = episodeNode.GetAttributeValue("data-entry", string.Empty);
 
                 var decodedHtml = WebUtility.HtmlDecode(dataEntryValue);
-                Console.WriteLine($"Data-Entry Value: {decodedHtml}");
 
                 var episode = JsonSerializer.Deserialize<ParsedEpisode>(decodedHtml);
 
@@ -40,6 +41,7 @@ public class TitlePageParser
                 }
                 
                 episodes.Add(episode);
+                Console.WriteLine($"Episode {episode.Uuid} found.");
             }
 
             return episodes;
@@ -66,9 +68,8 @@ public class TitlePageParser
             throw new ExtractorException("Episode is missing", null);
         }
 
-        string serialId = String.Empty;
-
-        try 
+        string serialId;
+        try
         {
             var episodeNode = JsonNode.Parse(episodeResponse);
 
@@ -97,11 +98,10 @@ public class TitlePageParser
             throw new ExtractorException("Serial is not parsed", null);
         }
 
-        string title = String.Empty;
-        string shortTitle = String.Empty;
-        int totalParts = 0;
-
-        try 
+        string title;
+        string shortTitle;
+        int totalParts;
+        try
         {
             var serialNode = JsonNode.Parse(serialResponse);
 

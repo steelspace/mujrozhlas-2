@@ -14,6 +14,7 @@ public interface IDatabase
     void SaveEpisodes(IEnumerable<Episode> episodes);
 
     List<Serial> GetAllSerials();
+    List<AudioLink> GetAllAudioLinks();
 
     List<Episode> GetEpisodes(string serialId);
     List<AudioLink> GetAudioLinks(string episodeId);

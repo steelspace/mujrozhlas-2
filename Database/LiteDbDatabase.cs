@@ -118,4 +118,13 @@ public class LiteDbDatabase : IDatabase
             return audioLinksCollection.Find(d => d.EpisodeId == episodeId).ToList();
         }
     }
+
+    public List<AudioLink> GetAllAudioLinks()
+    {
+        using (var db = new LiteDatabase(fileName))
+        {
+            var audioLinksCollection = GetAudioLinksDbCollection(db);
+            return audioLinksCollection.FindAll().ToList();
+        }
+    }
 }
