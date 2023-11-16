@@ -1,8 +1,8 @@
-using Mujrozhlas.Common;
-using Mujrozhlas.Data;
+using MujRozhlas.Common;
+using MujRozhlas.Data;
 using LiteDB;
 
-namespace Mujrozhlas.Database;
+namespace MujRozhlas.Database;
 public class LiteDbDatabase : IDatabase
 {
     const string fileName = "Mujrozhlas.db";

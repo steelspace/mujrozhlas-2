@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Mujrozhlas.Downloader;
+namespace MujRozhlas.Downloader;
 
 public class SanitizedFileName
 {

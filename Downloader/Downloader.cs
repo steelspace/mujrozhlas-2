@@ -1,12 +1,12 @@
-using Mujrozhlas.Data;
-using Mujrozhlas.Database;
-using Mujrozhlas.Runner;
+using MujRozhlas.Data;
+using MujRozhlas.Database;
+using MujRozhlas.FileManagement;
+using MujRozhlas.Runner;
 
-namespace Mujrozhlas.Downloader;
+namespace MujRozhlas.Downloader;
 
 public class Downloader
 {
-    const string downloadFolder = "./episodes";
     private readonly IRunner runner;
     private readonly IDatabase database;
 
@@ -36,19 +36,7 @@ public class Downloader
 
     void DownloadEpisode(Episode episode, string url)
     {
-        if (!Directory.Exists(downloadFolder))
-        {
-            Directory.CreateDirectory(downloadFolder);
-        }
-
-        var serialId = episode.SerialId!;
-        string serialFolder = Path.Combine(downloadFolder, serialId);
-        if (!Directory.Exists(serialFolder))
-        {
-            Directory.CreateDirectory(serialFolder);
-        }
-
-        string path = Path.Combine(serialFolder, new SanitizedFileName(episode.Id).Value + ".mp3");
+        string path = FileManager.GetFileName(episode);
 
         if (episode.IsDownloaded && File.Exists(path))
         {

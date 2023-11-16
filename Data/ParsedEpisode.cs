@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Mujrozhlas.Common;
+namespace MujRozhlas.Common;
 public class ParsedEpisode
 {
     [JsonPropertyName("id")]

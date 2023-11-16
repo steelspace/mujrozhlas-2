@@ -1,6 +1,6 @@
 using CommandLine;
 
-namespace Mujrozhlas.CommandLineArguments;
+namespace MujRozhlas.CommandLineArguments;
 
 [Verb("list", HelpText = "List information in the database.")]
 public class ListOptions
@@ -27,4 +27,14 @@ public class AddOptions
 {
     [Option('u', "url", Required = true, HelpText = "Serial URL from mujrozhlas.cz web site.")]
     public string SerialUrl { get; set; } = String.Empty;
+}
+
+[Verb("build", HelpText = "Build audio books from downloaded episodes")]
+public class BuildOptions
+{
+    [Option('i', "id", HelpText = "Serial ID. If omitted, all serials are built")]
+    public string SerialId { get; set; } = String.Empty;
+
+    [Option('f', "force", HelpText = "Build serial audio book even if some episodes are missing")]
+    public bool Force { get; set; }
 }

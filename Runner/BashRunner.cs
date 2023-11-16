@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace Mujrozhlas.Runner;
+namespace MujRozhlas.Runner;
 
 public class BashRunner : IRunner
 {

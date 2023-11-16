@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Mujrozhlas.Data;
+namespace MujRozhlas.Data;
 public class AudioLink
 {
     public AudioLink(string id, string episodeId, DateTimeOffset playableTill, string variant, int durationSeconds, string url)

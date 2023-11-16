@@ -1,6 +1,6 @@
-using Mujrozhlas.Data;
+using MujRozhlas.Data;
 
-namespace Mujrozhlas.Database;
+namespace MujRozhlas.Database;
 public interface IDatabase
 {
     void SaveSerial(Serial serial);

@@ -1,10 +1,10 @@
 using BetterConsoleTables;
 using CommunityToolkit.Common;
-using Mujrozhlas.CommandLineArguments;
-using Mujrozhlas.Database;
-using Mujrozhlas.Runner;
+using MujRozhlas.CommandLineArguments;
+using MujRozhlas.Database;
+using MujRozhlas.Runner;
 
-namespace Mujrozhlas.Commander;
+namespace MujRozhlas.Commander;
 
 public class Commander
 {
@@ -109,5 +109,19 @@ public class Commander
         }
 
         Console.WriteLine(table.ToString());   
+    }
+
+    public int RunBuild(BuildOptions opts)
+    {
+        if (string.IsNullOrEmpty(opts.SerialId))
+        {
+            var serials = database.GetAllSerials();
+            foreach (var serial in serials)
+            {
+
+            }
+        }
+
+        return 0;
     }
 }

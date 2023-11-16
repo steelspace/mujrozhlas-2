@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-namespace Mujrozhlas.Data;
+namespace MujRozhlas.Data;
 public class Episode
 {
     public Episode(string id, string title, string shortTitle, int part, string serialId)

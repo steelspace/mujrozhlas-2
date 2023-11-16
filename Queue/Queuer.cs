@@ -1,7 +1,7 @@
-using Mujrozhlas.Data;
-using Mujrozhlas.Database;
+using MujRozhlas.Data;
+using MujRozhlas.Database;
 
-namespace Mujrozhlas.Queuer;
+namespace MujRozhlas.Queuer;
 
 public class Queuer
 {
@@ -15,6 +15,12 @@ public class Queuer
     public void QueueAvailableEpisodes()
     {
         var serials = database.GetAllSerials();
+
+        if (serials.Count == 0)
+        {
+            Console.WriteLine("No serial is in the database.");
+            return;
+        }
 
         foreach (var serial in serials)
         {
@@ -47,8 +53,7 @@ public class Queuer
                 download = new Download(episode.Id, audioLink.Url);
                 database.InsertDownload(download);
 
-                Console.WriteLine($"URL {download.Url} for episode {episode.Part} of {serial.ShortTitle}");
-
+                Console.WriteLine($"Episode {episode.Part} of {serial.ShortTitle} is queued for download.");
             }
         }
     }

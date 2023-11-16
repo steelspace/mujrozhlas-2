@@ -2,8 +2,8 @@
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Mujrozhlas.Data;
-using Mujrozhlas.Common;
+using MujRozhlas.Data;
+using MujRozhlas.Common;
 using HtmlAgilityPack;
 
 namespace Extractor;

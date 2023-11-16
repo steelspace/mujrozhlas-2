@@ -1,4 +1,4 @@
-namespace Mujrozhlas.Runner;
+namespace MujRozhlas.Runner;
 
 public interface IRunner
 {
