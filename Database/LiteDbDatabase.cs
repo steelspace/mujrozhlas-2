@@ -3,62 +3,70 @@ using Mujrozhlas.Data;
 using LiteDB;
 
 namespace Mujrozhlas.Database;
-public class LiteDbDatabase : IDatabase, IDisposable
+public class LiteDbDatabase : IDatabase
 {
     const string fileName = "Mujrozhlas.db";
 
-    LiteDatabase db;
-
-    public LiteDbDatabase()
-    {
-        db = new LiteDatabase(fileName);
-    }
-
     public Serial LoadSerial(string serialId)
     {
-        var episodeCollection = GetSerialDbCollection();
-        return episodeCollection.FindById(serialId);
+        using (var db = new LiteDatabase(fileName))
+        {
+            var episodeCollection = GetSerialDbCollection(db);
+            return episodeCollection.FindById(serialId);
+        }
     }
 
     public void SaveEpisodes(IEnumerable<Episode> episodes)
     {
-        var episodeCollection = GetEpisodeDbCollection();
-        episodeCollection.Upsert(episodes);
+        using (var db = new LiteDatabase(fileName))
+        {
+            var episodeCollection = GetEpisodeDbCollection(db);
+            episodeCollection.Upsert(episodes);
 
-        var audioLinks = episodes.SelectMany(e => e.AudioLinks).ToList();
-        var audioLinksCollection = GetAudioLinksDbCollection();
-        audioLinksCollection.Upsert(audioLinks);
+            var audioLinks = episodes.SelectMany(e => e.AudioLinks).ToList();
+            var audioLinksCollection = GetAudioLinksDbCollection(db);
+            audioLinksCollection.Upsert(audioLinks);
+        }
     }
 
     public void SaveSerial(Serial serial)
     {
-        var episodeCollection = GetSerialDbCollection();
-        episodeCollection.Upsert(serial);
+        using (var db = new LiteDatabase(fileName))
+        {
+            var episodeCollection = GetSerialDbCollection(db);
+            episodeCollection.Upsert(serial);
+        }
     }
 
-    public ILiteCollection<Serial> GetSerialDbCollection() => db.GetCollection<Serial>("serial");
-    public ILiteCollection<Episode> GetEpisodeDbCollection() => db.GetCollection<Episode>("episode");
-    public ILiteCollection<Download> GetDownloadDbCollection() => db.GetCollection<Download>("download");
-    public ILiteCollection<AudioLink> GetAudioLinksDbCollection() => db.GetCollection<AudioLink>("audiolink");
+    public ILiteCollection<Serial> GetSerialDbCollection(LiteDatabase db) => db.GetCollection<Serial>("serial");
+    public ILiteCollection<Episode> GetEpisodeDbCollection(LiteDatabase db) => db.GetCollection<Episode>("episode");
+    public ILiteCollection<Download> GetDownloadDbCollection(LiteDatabase db) => db.GetCollection<Download>("download");
+    public ILiteCollection<AudioLink> GetAudioLinksDbCollection(LiteDatabase db) => db.GetCollection<AudioLink>("audiolink");
 
     public void InsertDownload(Download download)
     {
-        var downloadCollection = GetDownloadDbCollection();
-        downloadCollection.Insert(download);
+        using (var db = new LiteDatabase(fileName))
+        {
+            var downloadCollection = GetDownloadDbCollection(db);
+            downloadCollection.Insert(download);
+        }
     }
 
     public void SetDownloadFinished(string episodeId)
     {
-        var downloadCollection = GetDownloadDbCollection();
-        var download = downloadCollection.FindById(episodeId);
-
-        if (download == null)
+        using (var db = new LiteDatabase(fileName))
         {
-            throw new DownloadedException($"Download {episodeId} doesn't exist");
-        }
+            var downloadCollection = GetDownloadDbCollection(db);
+            var download = downloadCollection.FindById(episodeId);
 
-        download.IsDownloaded = true;
-        downloadCollection.Update(download);
+            if (download == null)
+            {
+                throw new DownloadedException($"Download {episodeId} doesn't exist");
+            }
+
+            download.IsDownloaded = true;
+            downloadCollection.Update(download);
+        }
     }
 
     public Download? GetNextDownload()
@@ -70,43 +78,44 @@ public class LiteDbDatabase : IDatabase, IDisposable
     {
         using (var db = new LiteDatabase(fileName))
         {
-            var episodeCollection = GetSerialDbCollection();
+            var episodeCollection = GetSerialDbCollection(db);
             return episodeCollection.FindAll().ToList();
         }
     }
 
     public List<Episode> GetEpisodes(string serialId)
     {
-        var episodeCollection = GetEpisodeDbCollection();
-        var serialEpisodes = episodeCollection.Find(e => e.SerialId == serialId);
+        using (var db = new LiteDatabase(fileName))
+        {
+            var episodeCollection = GetEpisodeDbCollection(db);
+            var serialEpisodes = episodeCollection.Find(e => e.SerialId == serialId);
 
-        return serialEpisodes.ToList();
+            return serialEpisodes.ToList();
+        }
     }
 
     public Download? GetDownload(string episodeId)
     {
-        var downloadsCollection = GetDownloadDbCollection();
-        var downloads = downloadsCollection.Find(d => d.Id == episodeId);
-
-        if (downloads is null)
+        using (var db = new LiteDatabase(fileName))
         {
-            return null;
-        }
+            var downloadsCollection = GetDownloadDbCollection(db);
+            var downloads = downloadsCollection.Find(d => d.Id == episodeId);
 
-        return downloads.FirstOrDefault();
-    }
+            if (downloads is null)
+            {
+                return null;
+            }
 
-    public void Dispose()
-    {
-        if (db is not null)
-        {
-            db.Dispose();
+            return downloads.FirstOrDefault();
         }
     }
 
     public List<AudioLink> GetAudioLinks(string episodeId)
     {
-        var audioLinksCollection = GetAudioLinksDbCollection();
-        return audioLinksCollection.Find(d => d.EpisodeId == episodeId).ToList();
+        using (var db = new LiteDatabase(fileName))
+        {
+            var audioLinksCollection = GetAudioLinksDbCollection(db);
+            return audioLinksCollection.Find(d => d.EpisodeId == episodeId).ToList();
+        }
     }
 }

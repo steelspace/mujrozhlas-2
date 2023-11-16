@@ -1,9 +1,9 @@
-using LiteDB;
+using System.Text.Json.Serialization;
 
 namespace Mujrozhlas.Data;
 public class Serial
 {
-    [BsonField("id")]
+    [JsonPropertyName("id")]
     public string Id { get; set; }
 
     public Serial(string id, string title, string shortTitle, int totalParts)
@@ -14,12 +14,12 @@ public class Serial
         TotalParts = totalParts;
     }
 
-    [BsonField("title")]
+    [JsonPropertyName("title")]
     public string Title { get; set; }
     
-    [BsonField("short-title")]
+    [JsonPropertyName("short-title")]
     public string ShortTitle { get; set; }
 
-    [BsonField("total-parts")]
+    [JsonPropertyName("total-parts")]
     public int TotalParts { get; set; }
 }

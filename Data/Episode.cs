@@ -1,5 +1,4 @@
-using LiteDB;
-
+using System.Text.Json.Serialization;
 namespace Mujrozhlas.Data;
 public class Episode
 {
@@ -12,21 +11,21 @@ public class Episode
         SerialId = serialId;
     }
 
-    [BsonField("id")]
+    [JsonPropertyName("id")]
     public string Id { get; set; }
 
-    [BsonField("serial-id")]
+    [JsonPropertyName("serial-id")]
     public string SerialId { get; set; }
 
-    [BsonField("title")]
+    [JsonPropertyName("title")]
     public string Title { get; set; }
     
-    [BsonField("short-title")]
+    [JsonPropertyName("short-title")]
     public string ShortTitle { get; set; }
 
-    [BsonField("part")]
+    [JsonPropertyName("part")]
     public int Part { get; set; }
 
-    [BsonField("audio-links")]
+    [JsonPropertyName("audio-links")]
     public List<AudioLink> AudioLinks  { get; set; } = new List<AudioLink>();
 }

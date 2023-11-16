@@ -23,7 +23,7 @@ internal class Program
 
     private static void Main(string[] args)
     {
-        using IDatabase database = new LiteDbDatabase();
+        IDatabase database = new LiteDbDatabase();
         var commander = new Commander(database);
 
         Parser.Default.ParseArguments<QueueOptions, ListOptions, AddOptions>(args)
