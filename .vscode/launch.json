@@ -11,7 +11,7 @@
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net8.0/mujrozhlas-2.dll",
-            // "args": ["add", "-uhttps://www.mujrozhlas.cz/cetba-na-pokracovani/raymond-chandler-hluboky-spanek-detektivni-roman-americke-drsne-skoly-s"],
+            // "args": ["add", "-uhttps://www.mujrozhlas.cz/podvecerni-cteni/alena-mornstajnova-listopad-co-kdyby-v-listopadu-1989-dopadlo-jinak"],
             // "args": ["queue"],
             // "args": ["download"],
             // "args": ["build"],

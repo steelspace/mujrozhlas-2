@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 namespace MujRozhlas.Data;
+
 public class Episode
 {
     public Episode(string id, string title, string shortTitle, int part, string serialId, DateTimeOffset since, DateTimeOffset till, DateTimeOffset updated)
