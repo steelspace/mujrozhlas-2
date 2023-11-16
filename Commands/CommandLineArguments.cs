@@ -1,4 +1,3 @@
-using System.ComponentModel.Design;
 using CommandLine;
 
 namespace Mujrozhlas.CommandLineArguments;
@@ -15,6 +14,11 @@ public class ListOptions
 
 [Verb("queue", HelpText = "Put all available episodes to the download queue.")]
 public class QueueOptions
+{
+}
+
+[Verb("download", HelpText = "Download all queued episodes that are available.")]
+public class DownloadOptions
 {
 }
 

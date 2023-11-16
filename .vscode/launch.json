@@ -13,7 +13,8 @@
             "program": "${workspaceFolder}/bin/Debug/net8.0/mujrozhlas-2.dll",
             // "args": ["add", "-uhttps://www.mujrozhlas.cz/cetba-s-hvezdickou/jolanta-trojak-svatava-v-praze-plne-tajnych-spolku-okultistu-joginu-se-objevi"],
             // "args": ["queue"],
-            "args": ["list", "-d"],
+            "args": ["download"],
+            // "args": ["list", "-d"],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",

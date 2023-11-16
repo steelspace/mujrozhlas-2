@@ -2,16 +2,19 @@ using BetterConsoleTables;
 using CommunityToolkit.Common;
 using Mujrozhlas.CommandLineArguments;
 using Mujrozhlas.Database;
+using Mujrozhlas.Runner;
 
 namespace Mujrozhlas.Commander;
 
 public class Commander
 {
     private readonly IDatabase database;
+    private readonly IRunner runner;
 
-    public Commander(IDatabase database)
+    public Commander(IDatabase database, IRunner runner)
     {
         this.database = database;
+        this.runner = runner;
     }
 
     public int RunAdd(AddOptions addOptions)
@@ -40,6 +43,13 @@ public class Commander
 
         return 0;
     }
+
+    public int RunDownload(DownloadOptions queueOptions)
+    {
+        var downloader = new Downloader.Downloader(database, runner);
+        downloader.DownloadAllAudioLinks();
+        return 0;
+    }    
 
     public int RunList(ListOptions listOptions)
     {

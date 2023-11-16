@@ -2,5 +2,5 @@ namespace Mujrozhlas.Runner;
 
 public interface IRunner
 {
-    void Runner(string command);
+    int Run(string command);
 }

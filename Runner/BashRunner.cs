@@ -1,20 +1,22 @@
+using System.Diagnostics;
+
 namespace Mujrozhlas.Runner;
 
-public class BashRunner
+public class BashRunner : IRunner
 {
-    public void Runner(string command)
+    public int Run(string command)
     {
-        using (var proc = new System.Diagnostics.Process())
-        {
-            proc.StartInfo.FileName = "/bin/bash";
-            proc.StartInfo.Arguments = "-c \" " + command + " \"";
-            proc.StartInfo.UseShellExecute = false;
-            proc.StartInfo.RedirectStandardOutput = true;
-            proc.Start();
-            while (!proc.StandardOutput.EndOfStream)
-            {
-                Console.WriteLine(proc.StandardOutput.ReadLine());
-            }
-        }
+        Console.WriteLine(command);
+
+        var proc = new Process();
+        proc.StartInfo.FileName = "/bin/bash";
+        proc.StartInfo.Arguments = "-c \" " + command + " \"";
+        proc.StartInfo.UseShellExecute = false;
+        proc.StartInfo.RedirectStandardOutput = false;
+        proc.StartInfo.RedirectStandardError = false;
+        proc.Start();
+        proc.WaitForExit();
+
+        return 0;
     }
 }
