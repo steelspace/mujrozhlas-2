@@ -2,27 +2,80 @@ using System.Text;
 using MujRozhlas.Data;
 using MujRozhlas.Database;
 using MujRozhlas.Downloader;
+using MujRozhlas.FileManagement;
+using MujRozhlas.Runner;
 
 namespace MujRozhlas.Builder;
 
 public class AudioBookBuilder
 {
     private readonly IDatabase database;
+    private readonly IRunner runner;
 
-    public AudioBookBuilder(IDatabase database)
+    public AudioBookBuilder(IDatabase database, IRunner runner)
     {
         this.database = database;
+        this.runner = runner;
     }
 
     public void BuildBook(Serial serial)
     {
-        string prefix = new SanitizedFileName(serial.ShortTitle).Value;
+        string prefix = new SanitizedFileName(serial.Id).Value;
 
         var metadataFile = $"{prefix}-metadata.txt";
         var coverArtFile = $"{prefix}-cover.jpg";
         var outputFileName = $"{prefix}-book.mp4";
         var listFileName = $"{prefix}-list.txt";
 
+        var serialFileNames = CreateList(serial);
+        if (string.IsNullOrEmpty(serialFileNames))
+        {
+            Console.WriteLine($"No downloaded files for serial {serial.ShortTitle}.");
+            return;
+        }
+
+        string metadata = CreateMetadata(serial);
+        string metadataFilePath = FileManager.WriteBuilderTextFile(serial, metadataFile, metadata);
+        string coverArtFilePath = FileManager.DownloadImageToOutputFilder(serial, coverArtFile);
+
+        string listFilePath = FileManager.WriteBuilderTextFile(serial, listFileName, serialFileNames);
+
+        // build
+        string buildCommand = String.Format($"ffmpeg -f concat -safe 0 -i {Path.GetFileName(listFilePath)} -i {Path.GetFileName(metadataFilePath)}"
+            + $" -vn -y -b:a 128k -acodec aac -ac 2 {Path.GetFileName(outputFileName)}");
+
+        runner.Run(buildCommand, FileManager.GetFullPathToSerialFolder(serial));
+    }
+
+    string? CreateList(Serial serial)
+    {
+        var episodes = database.GetEpisodes(serial.Id);
+
+        if (episodes.Count == 0)
+        {
+            return null;
+        }
+
+        var fileNames = new List<string>();
+
+        // order is important
+        foreach (var episode in episodes.OrderBy(e => e.Part))
+        {
+            if (FileManager.IsEpisodeDownloaded(episode))
+            {
+                string filePath = FileManager.GetFileName(episode);
+                fileNames.Add(Path.GetFileName(filePath));
+            }
+        }
+
+        var builder = new StringBuilder();
+
+        foreach (var part in fileNames)
+        {
+            builder.AppendLine($"file '{part}'");
+        }
+
+        return builder.ToString();
     }
 
     string CreateMetadata(Serial serial)
@@ -47,7 +100,7 @@ public class AudioBookBuilder
         builder.AppendLine($"title={NormalizeText(serial.ShortTitle)}");
 
         var episodes = database.GetEpisodes(serial.Id);
- 
+
         int start = 0;
         foreach (var episode in episodes.OrderBy(p => p.Part))
         {

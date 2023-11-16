@@ -4,7 +4,7 @@ namespace MujRozhlas.Runner;
 
 public class BashRunner : IRunner
 {
-    public int Run(string command)
+    public int Run(string command, string? runInFolder = null)
     {
         Console.WriteLine(command);
 
@@ -14,6 +14,10 @@ public class BashRunner : IRunner
         proc.StartInfo.UseShellExecute = false;
         proc.StartInfo.RedirectStandardOutput = false;
         proc.StartInfo.RedirectStandardError = false;
+        if (!string.IsNullOrEmpty(runInFolder))
+        {
+            proc.StartInfo.WorkingDirectory = runInFolder;
+        }
         proc.Start();
         proc.WaitForExit();
 

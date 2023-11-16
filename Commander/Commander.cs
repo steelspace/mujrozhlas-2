@@ -1,5 +1,6 @@
 using BetterConsoleTables;
 using CommunityToolkit.Common;
+using MujRozhlas.Builder;
 using MujRozhlas.CommandLineArguments;
 using MujRozhlas.Database;
 using MujRozhlas.Runner;
@@ -115,10 +116,12 @@ public class Commander
     {
         if (string.IsNullOrEmpty(opts.SerialId))
         {
+            var builder = new AudioBookBuilder(database, runner);
             var serials = database.GetAllSerials();
+
             foreach (var serial in serials)
             {
-
+                builder.BuildBook(serial);
             }
         }
 
