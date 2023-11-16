@@ -18,19 +18,19 @@ public class Downloader
 
     public void DownloadAllAudioLinks()
     {
-        var audioLinks = database.GetAllAudioLinks();
+        var downloads = database.GetAllDownloads();
 
-        if (audioLinks is null)
+        if (downloads.Count == 0)
         {
-            Console.WriteLine("No audiolinks in queue.");
+            Console.WriteLine("No download in queue.");
             return;
         }
 
-        foreach (var audioLink in audioLinks)
+        foreach (var download in downloads)
         {
-            var episode = database.GetEpisode(audioLink.EpisodeId);
+            var episode = database.GetEpisode(download.Id);
 
-            DownloadEpisode(episode, audioLink.Url);
+            DownloadEpisode(episode, download.Url);
         }
     }
 
@@ -52,7 +52,7 @@ public class Downloader
 
         if (episode.IsDownloaded && File.Exists(path))
         {
-            Console.WriteLine($"Link {url} for '{episode.ShortTitle}' is already donwloaded.");
+            Console.WriteLine($"Link {url} for '{episode.ShortTitle}' part {episode.Part} is already donwloaded.");
             return;
         }
 
