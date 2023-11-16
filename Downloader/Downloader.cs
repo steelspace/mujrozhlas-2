@@ -29,6 +29,7 @@ public class Downloader
         foreach (var audioLink in audioLinks)
         {
             var episode = database.GetEpisode(audioLink.EpisodeId);
+
             DownloadEpisode(episode, audioLink.Url);
         }
     }
@@ -48,6 +49,12 @@ public class Downloader
         }
 
         string path = Path.Combine(serialFolder, new SanitizedFileName(episode.Id).Value + ".mp3");
+
+        if (episode.IsDownloaded && File.Exists(path))
+        {
+            Console.WriteLine($"Link {url} for '{episode.ShortTitle}' is already donwloaded.");
+            return;
+        }
 
         string command = $"ffmpeg -i \"{url}\" -bsf:a aac_adtstoasc -vcodec copy -y -c copy -crf 50 -f mp4 \"{path}\"";
         runner.Run(command);
