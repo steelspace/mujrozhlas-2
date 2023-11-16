@@ -19,4 +19,5 @@ public interface IDatabase
 
     List<Episode> GetEpisodes(string serialId);
     List<AudioLink> GetAudioLinks(string episodeId);
+    Episode GetEpisode(string episodeId);
 }

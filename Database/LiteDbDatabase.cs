@@ -136,4 +136,13 @@ public class LiteDbDatabase : IDatabase
             return downloadsCollection.FindAll().ToList();
         }
     }
+
+    public Episode GetEpisode(string episodeId)
+    {
+        using (var db = new LiteDatabase(fileName))
+        {
+            var episodesCollection = GetEpisodeDbCollection(db);
+            return episodesCollection.FindById(episodeId);
+        }
+    }
 }

@@ -1,3 +1,4 @@
+using Mujrozhlas.Data;
 using Mujrozhlas.Database;
 using Mujrozhlas.Runner;
 
@@ -27,18 +28,26 @@ public class Downloader
 
         foreach (var audioLink in audioLinks)
         {
-            DownloadEpisode(audioLink.EpisodeId, audioLink.Url);
+            var episode = database.GetEpisode(audioLink.EpisodeId);
+            DownloadEpisode(episode, audioLink.Url);
         }
     }
 
-    void DownloadEpisode(string episodeId, string url)
+    void DownloadEpisode(Episode episode, string url)
     {
         if (!Directory.Exists(downloadFolder))
         {
             Directory.CreateDirectory(downloadFolder);
         }
 
-        string path = Path.Combine(downloadFolder, new SanitizedFileName(episodeId).Value + ".mp3");
+        var serialId = episode.SerialId!;
+        string serialFolder = Path.Combine(downloadFolder, serialId);
+        if (!Directory.Exists(serialFolder))
+        {
+            Directory.CreateDirectory(serialFolder);
+        }
+
+        string path = Path.Combine(serialFolder, new SanitizedFileName(episode.Id).Value + ".mp3");
 
         string command = $"ffmpeg -i \"{url}\" -bsf:a aac_adtstoasc -vcodec copy -y -c copy -crf 50 -f mp4 \"{path}\"";
         var t = runner.Run(command);
