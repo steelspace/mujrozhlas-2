@@ -40,7 +40,7 @@ public class Downloader
 
         if (episode.IsDownloaded && File.Exists(path))
         {
-            Console.WriteLine($"Link {url} for '{episode.ShortTitle}' part {episode.Part} is already donwloaded.");
+            Console.WriteLine($"Audio for '{episode.ShortTitle}' part {episode.Part} is already donwloaded.");
             return;
         }
 

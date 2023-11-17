@@ -105,16 +105,8 @@ public class Commander
     public int RunList(ListOptions listOptions)
     {
         RunRefreshEpisodes();
+        summaryManager.ListSerials();
 
-        if (listOptions.Serials)
-        {
-            summaryManager.ListSerials();
-        }
-
-        if (listOptions.DownloadQueue)
-        {
-            summaryManager.ListDownloadQueue();
-        }
         return 0;
     }
 

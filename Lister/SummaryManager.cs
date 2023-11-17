@@ -71,30 +71,6 @@ public class SummaryManager
         int max = episodes.MaxOrDefault(al => al.Part);
         return $"{(min == 0 ? String.Empty : min)}-{(max == 0 ? String.Empty : max)}";
     }
-
-    public void ListDownloadQueue()
-    {
-        var downloads = database.GetAllDownloads();
-
-        if (downloads.Count == 0)
-        {
-            Console.WriteLine("No downloads in the queue.");
-            return;
-        }
-
-        var table = new Table("Episode ID", "URL")
-        {
-            Config = TableConfiguration.Markdown()
-        };
-
-        foreach (var download in downloads.OrderBy(d => d.Id))
-        {
-            table.AddRow(download.Id, download.Url);
-        }
-
-        Console.WriteLine(table.ToString());   
-    }
-
 }
 
 public static class MyEnumerableExtensions
