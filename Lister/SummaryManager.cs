@@ -41,19 +41,19 @@ public class SummaryManager
                 downloaded.MaxOrDefault(e => e.Part) < availableAudioLinks.MaxOrDefault(e => e.Part);
 
             bool isBookReady = FileManager.IsAudioBookReady(serial);
-            bool allEpisodesDownloaded = IsSerialCompletelyDownloaded(serial);
+            bool allEpisodesDownloaded = IsSerialCompletelyDownloaded(database, serial);
 
             table.AddRow(serial.Title.Truncate(30, true), serial.Id, serial.TotalParts,
                     MinMax(downloaded),
                     MinMax(availableAudioLinks),
                     hasUndownloaded ? "YES" : "NO",
-                    isBookReady ? "READY" : allEpisodesDownloaded ? "COMPLETE" : "INCOMPLETE");
+                    isBookReady ? "READY" : allEpisodesDownloaded ? "DOWNLOADED" : "INCOMPLETE");
         }
 
         Console.WriteLine(table.ToString());
     }
 
-    bool IsSerialCompletelyDownloaded(Serial serial)
+    public static bool IsSerialCompletelyDownloaded(IDatabase database, Serial serial)
     {
         var episodes = database.GetEpisodes(serial.Id);
 

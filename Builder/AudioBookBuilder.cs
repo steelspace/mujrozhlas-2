@@ -4,6 +4,7 @@ using MujRozhlas.Data;
 using MujRozhlas.Database;
 using MujRozhlas.Downloader;
 using MujRozhlas.FileManagement;
+using MujRozhlas.Lister;
 using MujRozhlas.Runner;
 
 namespace MujRozhlas.Builder;
@@ -21,6 +22,18 @@ public class AudioBookBuilder
 
     public void BuildBook(Serial serial)
     {
+        if (FileManager.IsAudioBookReady(serial))
+        {
+            Console.WriteLine($"Audiobook for '{serial.ShortTitle}' is already built.");
+            return;
+        }
+
+        if (!SummaryManager.IsSerialCompletelyDownloaded(database, serial))
+        {
+            Console.WriteLine($"Episodes for '{serial.ShortTitle}' are not downloaded, skipping.");
+            return;
+        }
+
         string prefix = new SanitizedFileName(serial.Id).Value;
 
         var metadataFile = $"{prefix}-metadata.txt";
@@ -55,9 +68,11 @@ public class AudioBookBuilder
         string workingFolder = FileManager.GetFullPathToSerialFolder(serial);
         runner.Run(buildCommand, workingFolder);
 
+        var titleAuthor = GetTitleAuthor(serial);
         // attach title and cover art
         string attachCommand = $"ffmpeg -y -i {Path.GetFileName(outputFileName)} -i {Path.GetFileName(coverArtFilePath)}" 
                         + $" -map 1 -map 0 -c copy -disposition:0 attached_pic"
+                        + titleAuthor.Item2 is not null ? $" -metadata artist=\"{titleAuthor.Item2}\"" : ""
                         + $" _{Path.GetFileName(outputFileName)}"
                         + $" && rm {Path.GetFileName(outputFileName)} && mv _{Path.GetFileName(outputFileName)} {Path.GetFileName(outputFileName)}";
 
@@ -119,20 +134,12 @@ public class AudioBookBuilder
         var builder = new StringBuilder();
         builder.AppendLine(";FFMETADATA1");
 
-        const string pattern = @"(.*?):(.*)";
-        var match = Regex.Match(serial.ShortTitle, pattern);
-        
-        if (match.Groups.Count == 3)
-        {
-            string author = match.Groups[1].Value;
-            string serialTitle = match.Groups[2].Value;
+        var titleAuthor = GetTitleAuthor(serial);
+        builder.AppendLine($"title={NormalizeText(titleAuthor.Item1)}");
 
-            builder.AppendLine($"artist={author}");
-            builder.AppendLine($"title={NormalizeText(serial.ShortTitle)}");
-        }
-        else
+        if (titleAuthor.Item2 is not null)
         {
-            builder.AppendLine($"title={NormalizeText(serial.ShortTitle)}");
+            builder.AppendLine($"artist={titleAuthor.Item1}");
         }
 
         var episodes = database.GetEpisodes(serial.Id);
@@ -162,6 +169,24 @@ public class AudioBookBuilder
         }
 
         return builder.ToString();
+    }
+
+    (string, string?) GetTitleAuthor(Serial serial)
+    {
+        const string pattern = @"(.*?):(.*)";
+        var match = Regex.Match(serial.ShortTitle, pattern);
+        
+        if (match.Groups.Count == 3)
+        {
+            string author = match.Groups[1].Value;
+            string serialTitle = match.Groups[2].Value;
+
+            return (serialTitle, author);
+        }
+        else
+        {
+            return (serial.ShortTitle, null);
+        }        
     }
 
     string NormalizeText(string text)
