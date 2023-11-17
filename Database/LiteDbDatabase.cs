@@ -6,7 +6,7 @@ public class LiteDbDatabase : IDatabase
 {
     const string fileName = "Mujrozhlas.db";
 
-    public Serial LoadSerial(string serialId)
+    public Serial GetSerial(string serialId)
     {
         using (var db = new LiteDatabase(fileName))
         {

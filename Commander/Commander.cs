@@ -33,6 +33,12 @@ public class Commander
         var serial = parser.GetSerial(parsedEpisodes).Result;
         Console.WriteLine($"Serial '{serial.ShortTitle}' was recognized.");
 
+        if (database.GetSerial(serial.Id) != null)
+        {
+            Console.WriteLine($"Serial '{serial.ShortTitle}' is already added.");
+            return 0;
+        }
+
         database.SaveSerial(serial);
 
         GetEpisodes(parser, serial);

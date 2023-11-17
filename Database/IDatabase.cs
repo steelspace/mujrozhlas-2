@@ -4,7 +4,7 @@ namespace MujRozhlas.Database;
 public interface IDatabase
 {
     void SaveSerial(Serial serial);
-    Serial LoadSerial(string serialId);
+    Serial GetSerial(string serialId);
 
     void InsertDownload(Download download);
     void SetDownloadFinished(string episodeId);
