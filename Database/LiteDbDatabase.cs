@@ -68,8 +68,8 @@ public class LiteDbDatabase : IDatabase
     {
         using (var db = new LiteDatabase(fileName))
         {
-            var episodeCollection = GetSerialDbCollection(db);
-            return episodeCollection.FindAll().ToList();
+            var serialCollection = GetSerialDbCollection(db);
+            return serialCollection.FindAll().ToList();
         }
     }
 
@@ -143,6 +143,25 @@ public class LiteDbDatabase : IDatabase
         {
             var episodesCollection = GetEpisodeDbCollection(db);
             return episodesCollection.FindById(episodeId);
+        }
+    }
+
+    public void DeleteSerial(string serialId)
+    {
+        using (var db = new LiteDatabase(fileName))
+        {
+            var serialCollection = GetSerialDbCollection(db);
+            serialCollection.Delete(serialId);
+        }
+    }
+
+
+    public void DeleteSerialEpisodes(string serialId)
+    {
+        using (var db = new LiteDatabase(fileName))
+        {
+            var episodesCollection = GetEpisodeDbCollection(db);
+            episodesCollection.DeleteMany(e => e.SerialId == serialId);
         }
     }
 }

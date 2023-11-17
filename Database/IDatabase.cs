@@ -5,6 +5,7 @@ public interface IDatabase
 {
     void SaveSerial(Serial serial);
     Serial GetSerial(string serialId);
+    void DeleteSerial(string serialId);
 
     void InsertDownload(Download download);
     void SetDownloadFinished(string episodeId);
@@ -19,4 +20,5 @@ public interface IDatabase
     List<Episode> GetEpisodes(string serialId);
     List<AudioLink> GetAudioLinks(string episodeId);
     Episode GetEpisode(string episodeId);
+    void DeleteSerialEpisodes(string serialId);
 }

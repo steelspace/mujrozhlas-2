@@ -1,10 +1,9 @@
-using BetterConsoleTables;
-using CommunityToolkit.Common;
 using Extractor;
 using MujRozhlas.Builder;
 using MujRozhlas.CommandLineArguments;
 using MujRozhlas.Data;
 using MujRozhlas.Database;
+using MujRozhlas.FileManagement;
 using MujRozhlas.Lister;
 using MujRozhlas.Runner;
 
@@ -27,8 +26,10 @@ public class Commander
 
     public int RunAdd(AddOptions addOptions)
     {
+        string serialUrl = addOptions.SerialUrl.Trim();
+
         var parser = new Extractor.TitlePageParser();
-        var parsedEpisodes = parser.ExtractTitleInformation(addOptions.SerialUrl).Result;
+        var parsedEpisodes = parser.ExtractTitleInformation(serialUrl).Result;
 
         var serial = parser.GetSerial(parsedEpisodes).Result;
         Console.WriteLine($"Serial '{serial.ShortTitle}' was recognized.");
@@ -91,10 +92,9 @@ public class Commander
         return 0;
     }
 
-    public int RunDownload(DownloadOptions queueOptions)
+    public int RunDownload(DownloadOptions _)
     {
         RunRefreshEpisodes();
-
         RunQueue();
         
         var downloader = new Downloader.Downloader(database, runner);
@@ -102,7 +102,7 @@ public class Commander
         return 0;
     }    
 
-    public int RunList(ListOptions listOptions)
+    public int RunList(ListOptions _)
     {
         RunRefreshEpisodes();
         summaryManager.ListSerials();
@@ -112,7 +112,9 @@ public class Commander
 
     public int RunBuild(BuildOptions opts)
     {
-        if (string.IsNullOrEmpty(opts.SerialId))
+        string serialId = opts.SerialId.Trim();
+
+        if (string.IsNullOrEmpty(serialId))
         {
             var builder = new AudioBookBuilder(database, runner);
             var serials = database.GetAllSerials();
@@ -121,6 +123,28 @@ public class Commander
             {
                 builder.BuildBook(serial);
             }
+        }
+
+        return 0;
+    }
+
+    public int RunDelete(DeleteOptions opts)
+    {
+        string serialId = opts.SerialId.Trim();
+        var serial = database.GetSerial(serialId);
+
+        if (serial == null)
+        {
+            Console.WriteLine($"Serial '{serialId}' was not found.");
+            return 0;
+        }
+        else
+        {
+            database.DeleteSerialEpisodes(serialId);
+            database.DeleteSerial(serialId);
+            FileManager.DeleteSerialFiles(serialId);
+
+            Console.WriteLine($"Serial '{serial.ShortTitle}' was deleted.");
         }
 
         return 0;

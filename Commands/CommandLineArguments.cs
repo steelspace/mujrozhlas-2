@@ -28,3 +28,10 @@ public class BuildOptions
     [Option('f', "force", HelpText = "Build serial audio book even if some episodes are missing")]
     public bool Force { get; set; }
 }
+
+[Verb("delete", HelpText = "Build audio books from downloaded episodes")]
+public class DeleteOptions
+{
+    [Option('i', "id", Required = true, HelpText = "Serial ID to be removed. User 'list' verb to determine serial ID.")]
+    public string SerialId { get; set; } = String.Empty;
+}

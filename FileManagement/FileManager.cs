@@ -115,4 +115,10 @@ public static class FileManager
             File.Move(currentFileName, GetNiceAudioBookFileName(serial), true);
         }
     }
+
+    public static void DeleteSerialFiles(string serialId)
+    {
+        string path = EnsureSerialFolder(serialId);
+        Directory.Delete(path, true);
+    }
 }
