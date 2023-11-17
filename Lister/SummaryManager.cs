@@ -1,5 +1,6 @@
 using BetterConsoleTables;
 using CommunityToolkit.Common;
+using MujRozhlas.Data;
 using MujRozhlas.Database;
 using MujRozhlas.FileManagement;
 
@@ -25,7 +26,7 @@ public class SummaryManager
             return;
         }
 
-        var table = new Table("Serial", "Id", "Total Parts", "Downloaded", "Available", "Unavailable", "Missing")
+        var table = new Table("Serial", "Id", "Total Parts", "Downloaded", "Available", "Missing", "Book")
         {
             Config = TableConfiguration.Markdown()
         };
@@ -35,19 +36,40 @@ public class SummaryManager
             var episodes = database.GetEpisodes(serial.Id);
             var downloaded = episodes.Where(FileManager.IsEpisodeDownloaded);
             var availableAudioLinks = episodes.Where(e => e.AudioLinks.Any(al => al.PlayableTill > DateTimeOffset.Now)).ToArray();
-            var unavailableAudioLinks = episodes.Where(e => e.AudioLinks.Any(al => al.PlayableTill < DateTimeOffset.Now)).ToArray();
 
-            bool hasUndownloaded = 
+            bool hasUndownloaded =
                 downloaded.MaxOrDefault(e => e.Part) < availableAudioLinks.MaxOrDefault(e => e.Part);
 
+            bool isBookReady = FileManager.IsAudioBookReady(serial);
+            bool allEpisodesDownloaded = IsSerialCompletelyDownloaded(serial);
+
             table.AddRow(serial.Title.Truncate(30, true), serial.Id, serial.TotalParts,
-                    $"{downloaded.MinDefault(al => al.Part)}-{downloaded.MaxOrDefault(al => al.Part)}",
-                    $"{availableAudioLinks.MinDefault(al => al.Part)}-{availableAudioLinks.MaxOrDefault(al => al.Part)}",
-                    $"{unavailableAudioLinks.MinDefault(al => al.Part)}-{unavailableAudioLinks.MaxOrDefault(al => al.Part)}",
-                    hasUndownloaded ? "YES" : "NO");
+                    MinMax(downloaded),
+                    MinMax(availableAudioLinks),
+                    hasUndownloaded ? "YES" : "NO",
+                    isBookReady ? "READY" : allEpisodesDownloaded ? "COMPLETE" : "INCOMPLETE");
         }
 
         Console.WriteLine(table.ToString());
+    }
+
+    bool IsSerialCompletelyDownloaded(Serial serial)
+    {
+        var episodes = database.GetEpisodes(serial.Id);
+
+        if (episodes.Count < serial.TotalParts)
+        {
+            return false;
+        }
+        
+        return episodes.All(e => FileManager.IsEpisodeDownloaded(e));
+    }
+
+    static string MinMax(IEnumerable<Episode> episodes)
+    {
+        int min = episodes.MinDefault(al => al.Part);
+        int max = episodes.MaxOrDefault(al => al.Part);
+        return $"{(min == 0 ? String.Empty : min)}-{(max == 0 ? String.Empty : max)}";
     }
 
     public void ListDownloadQueue()

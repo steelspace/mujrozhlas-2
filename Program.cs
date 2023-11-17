@@ -12,11 +12,10 @@ internal class Program
         IRunner runner = new BashRunner();
         var commander = new Commander(database, runner);
 
-        Parser.Default.ParseArguments<QueueOptions, ListOptions, AddOptions, DownloadOptions, BuildOptions>(args)
+        Parser.Default.ParseArguments<ListOptions, AddOptions, DownloadOptions, BuildOptions>(args)
         .MapResult(
             (AddOptions opts) => commander.RunAdd(opts),
             (ListOptions opts) => commander.RunList(opts),
-            (QueueOptions opts) => commander.RunQueue(opts),
             (DownloadOptions opts) => commander.RunDownload(opts),
             (BuildOptions opts) => commander.RunBuild(opts),
             errs => 1);

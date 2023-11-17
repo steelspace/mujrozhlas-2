@@ -75,7 +75,7 @@ public class Commander
         Console.WriteLine($"Serial '{serial.ShortTitle}' has {episodes.Count} parts available from total {serial.TotalParts}.");
     }
 
-    public int RunQueue(QueueOptions queueOptions)
+    int RunQueue()
     {
         RunRefreshEpisodes();
 
@@ -88,6 +88,8 @@ public class Commander
     public int RunDownload(DownloadOptions queueOptions)
     {
         RunRefreshEpisodes();
+
+        RunQueue();
         
         var downloader = new Downloader.Downloader(database, runner);
         downloader.DownloadAllAudioLinks();

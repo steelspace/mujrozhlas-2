@@ -59,6 +59,13 @@ public static class FileManager
         return path;
     }
 
+    public static bool IsAudioBookReady(Serial serial)
+    {
+        string audioBookPath = GetNiceAudioBookFileName(serial);
+
+        return File.Exists(audioBookPath);
+    }
+
     public static bool IsEpisodeDownloaded(Episode episode)
     {
         string fileName = GetFileName(episode);
