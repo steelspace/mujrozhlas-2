@@ -6,6 +6,7 @@ namespace MujRozhlas.FileManagement;
 public static class FileManager
 {
     const string downloadFolder = "./episodes";
+    const string audioBookFolder = "./books";
 
     static string EnsureFolder(string rootFolder, string subFolder)
     {
@@ -21,6 +22,16 @@ public static class FileManager
         }
 
         return folder;
+    }
+
+    static string EnsureAudioBooksFolder()
+    {
+        if (!Directory.Exists(audioBookFolder))
+        {
+            Directory.CreateDirectory(audioBookFolder);
+        }
+
+        return audioBookFolder;
     }
 
     static string EnsureSerialFolder(string serialId)
@@ -53,7 +64,7 @@ public static class FileManager
 
     public static string GetNiceAudioBookFileName(Serial serial)
     {
-        string serialFolder = EnsureSerialFolder(serial.Id);
+        string serialFolder = EnsureAudioBooksFolder();
 
         string path = Path.Combine(serialFolder, new SanitizedFileName(serial.Title).Value + AudioFileSuffix);        
         return path;

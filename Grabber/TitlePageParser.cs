@@ -9,66 +9,59 @@ using HtmlAgilityPack;
 namespace Extractor;
 public class TitlePageParser
 {
-    public async Task<IEnumerable<ParsedEpisode>> ExtractTitleInformation(string url)
+    public ParsedEpisode ExtractTitleInformation(string url)
     {
-        var episodes = new List<ParsedEpisode>();
-
         // Load HTML content from the URL
-        string htmlContent = await LoadHtmlContent(url);
+        string htmlContent = LoadHtmlContent(url);
         // Load HTML string into HtmlDocument
         var doc = new HtmlDocument();
         doc.LoadHtml(htmlContent);
 
         // Select nodes with class "b-episode"
-        HtmlNodeCollection episodeNodes = doc.DocumentNode.SelectNodes("//article[contains(@class, 'b-episode')]");
+        var episodeNodes = doc.DocumentNode.SelectNodes("//article[contains(@class, 'b-episode')]");
+        var episodeNode = episodeNodes?.FirstOrDefault();
 
-        if (episodeNodes != null)
-        {
-            Console.WriteLine($"Episodes found, parsing continues: {url}");
-
-            foreach (HtmlNode episodeNode in episodeNodes)
-            {
-                // Get the data-entry attribute value
-                string dataEntryValue = episodeNode.GetAttributeValue("data-entry", string.Empty);
-
-                var decodedHtml = WebUtility.HtmlDecode(dataEntryValue);
-
-                var episode = JsonSerializer.Deserialize<ParsedEpisode>(decodedHtml);
-
-                if (episode is null)
-                {
-                    throw new ExtractorException("Episode is not parsed");
-                }
-                
-                episodes.Add(episode);
-                Console.WriteLine($"Episode {episode.Uuid} found.");
-            }
-
-            return episodes;
-        }
-        else
+        if (episodeNode is null)
         {
             throw new ExtractorException("No episodes found with class 'b-episode'");
+
         }
+
+        Console.WriteLine($"Episodes found, parsing continues: {url}");
+
+        // Get the data-entry attribute value
+        string dataEntryValue = episodeNode.GetAttributeValue("data-entry", string.Empty);
+
+        var decodedHtml = WebUtility.HtmlDecode(dataEntryValue);
+
+        var episode = JsonSerializer.Deserialize<ParsedEpisode>(decodedHtml);
+
+        if (episode is null)
+        {
+            throw new ExtractorException("Episode is not parsed");
+        }
+
+        Console.WriteLine($"Episode {episode.Uuid} found.");
+
+        return episode;
     }
 
-    public async Task<Serial> GetSerial(IEnumerable<ParsedEpisode> parsedEpisodes)
+    public Serial? GetSerial(ParsedEpisode parsedEpisode)
     {
-        var parsedEpisode = parsedEpisodes.FirstOrDefault();
-
         if (parsedEpisode?.Id is null)
         {
             throw new ExtractorException("Episode UUID is missing");
         }
 
-        string? episodeResponse = await LoadHtmlContent($"https://api.mujrozhlas.cz/episodes/{parsedEpisode.Uuid}");
+        string? episodeResponse = LoadHtmlContent($"https://api.mujrozhlas.cz/episodes/{parsedEpisode.Uuid}");
 
         if (episodeResponse is null)
         {
             throw new ExtractorException("Episode is missing", null);
         }
 
-        string serialId;
+        string? serialId = null;
+
         try
         {
             var episodeNode = JsonNode.Parse(episodeResponse);
@@ -83,7 +76,12 @@ public class TitlePageParser
                 throw new ExtractorException("Wrong type of 'Episode'", null);
             }
 
-            serialId = episodeNode["data"]!["relationships"]!["serial"]!["data"]!["id"]!.GetValue<string>();
+            var serialNode = episodeNode["data"]!["relationships"]!["serial"];
+
+            if (serialNode?["data"]?["id"] is not null)
+            {
+                serialId = serialNode!["data"]!["id"]!.GetValue<string>();
+            }
         }
 
         catch (Exception ex)
@@ -91,106 +89,112 @@ public class TitlePageParser
             throw new ExtractorException("Error in 'Episode'", ex);
         }
 
-        string? serialResponse = await LoadHtmlContent($"https://api.mujrozhlas.cz/serials/{serialId}");
-
-        if (serialResponse is null)
+        if (serialId is not null)
         {
-            throw new ExtractorException("Serial is not parsed", null);
-        }
+            string? serialResponse = LoadHtmlContent($"https://api.mujrozhlas.cz/serials/{serialId}");
 
-        string title;
-        string shortTitle;
-        int totalParts;
-        string coverArtUrl;
-
-        try
-        {
-            var serialNode = JsonNode.Parse(serialResponse);
-
-            if (serialNode is null)
+            if (serialResponse is null)
             {
-                throw new ExtractorException("Serial is missing", null);
+                throw new ExtractorException("Serial is not parsed", null);
             }
 
-            if (serialNode["data"]!["type"]!.GetValue<string>() != "serial")
+            string title;
+            string shortTitle;
+            int totalParts;
+            string coverArtUrl;
+
+            try
             {
-                throw new ExtractorException("Wrong type of 'Serial'", null);
+                var serialNode = JsonNode.Parse(serialResponse);
+
+                if (serialNode is null)
+                {
+                    throw new ExtractorException("Serial is missing", null);
+                }
+
+                if (serialNode["data"]!["type"]!.GetValue<string>() != "serial")
+                {
+                    throw new ExtractorException("Wrong type of 'Serial'", null);
+                }
+
+                title = serialNode["data"]!["attributes"]!["title"]!.GetValue<string>();
+                shortTitle = serialNode["data"]!["attributes"]!["shortTitle"]!.GetValue<string>();
+                totalParts = serialNode["data"]!["attributes"]!["totalParts"]!.GetValue<int>();
+                coverArtUrl = serialNode["data"]!["attributes"]!["asset"]!["url"]!.GetValue<string>();
             }
 
-            title = serialNode["data"]!["attributes"]!["title"]!.GetValue<string>();
-            shortTitle = serialNode["data"]!["attributes"]!["shortTitle"]!.GetValue<string>();
-            totalParts = serialNode["data"]!["attributes"]!["totalParts"]!.GetValue<int>();
-            coverArtUrl = serialNode["data"]!["attributes"]!["asset"]!["url"]!.GetValue<string>();
-        }
+            catch (Exception ex)
+            {
+                throw new ExtractorException("Error in 'Episode'", ex);
+            }
 
-        catch (Exception ex)
+            var serial = new Serial(serialId, title, shortTitle, totalParts, coverArtUrl, DateTimeOffset.Now);
+
+            return serial;
+        }
+        else
         {
-            throw new ExtractorException("Error in 'Episode'", ex);
+            return null;
         }
-
-        var serial = new Serial(serialId, title, shortTitle, totalParts, coverArtUrl, DateTimeOffset.Now);
-
-        return serial;
     }
 
-    public async Task<List<Episode>> GetAvailableEpisodes(string serialId)
+    public ParsedEpisode ExtractNonSerialTitleInformation(string url)
     {
-        string? serialEpisodesResponse = await LoadHtmlContent($"https://api.mujrozhlas.cz/serials/{serialId}/episodes");
+        // Load HTML content from the URL
+        string htmlContent = LoadHtmlContent(url);
+        // Load HTML string into HtmlDocument
+        var doc = new HtmlDocument();
+        doc.LoadHtml(htmlContent);
+
+        // <section class="player-wrapper" data-entry=
+        // not a series show
+        var episodeNodes = doc.DocumentNode.SelectNodes("//section[contains(@class, 'player-wrapper')]");
+        var episodeNode = episodeNodes?.FirstOrDefault();
+
+        if (episodeNode is null)
+        {
+            throw new ExtractorException("No episodes found with class 'player-wrapper'");
+        }
+
+        Console.WriteLine($"Episodes found, parsing continues: {url}");
+
+        // Get the data-entry attribute value
+        string dataEntryValue = episodeNode.GetAttributeValue("data-entry", string.Empty);
+
+        var decodedHtml = WebUtility.HtmlDecode(dataEntryValue);
+
+        var episode = JsonSerializer.Deserialize<ParsedEpisode>(decodedHtml);
+
+        if (episode is null)
+        {
+            throw new ExtractorException("Episode is not parsed");
+        }
+
+        Console.WriteLine($"Episode {episode.Uuid} found.");
+
+        return episode;
+    }
+
+    public List<Episode> GetAvailableEpisodes(string serialId)
+    {
+        string? serialEpisodesResponse = LoadHtmlContent($"https://api.mujrozhlas.cz/serials/{serialId}/episodes");
 
         if (serialEpisodesResponse is null)
         {
             throw new ExtractorException("Episodes are missing", null);
         }
 
-        try 
+        try
         {
             var episodesJsonNode = JsonNode.Parse(serialEpisodesResponse);
             var episodeNodes = episodesJsonNode!["data"]!.AsArray();
-
             var episodes = new List<Episode>();
 
             foreach (var episodeNode in episodeNodes)
             {
-                string episodeId = string.Empty;
-                string title = string.Empty;
-                string shortTitle = string.Empty;
-                DateTimeOffset since = DateTimeOffset.Now;
-                DateTimeOffset till = DateTimeOffset.Now;
-                DateTimeOffset updated = DateTimeOffset.Now;
-                int part = 0;
-
-                if (episodeNode is not null &&
-                     episodeNode["type"]!.GetValue<string>() == "episode")
+                var episode = GetEpisode(serialId, episodeNode);
+                if (episode is not null)
                 {
-                    episodeId = episodeNode["id"]!.GetValue<string>();
-                    title = episodeNode["attributes"]!["title"]!.GetValue<string>();
-                    shortTitle = episodeNode["attributes"]!["shortTitle"]!.GetValue<string>();
-                    part = episodeNode["attributes"]!["part"]!.GetValue<int>();
-
-                    since = episodeNode["attributes"]!["since"]!.GetValue<DateTimeOffset>();
-                    till = episodeNode["attributes"]!["till"]!.GetValue<DateTimeOffset>();
-                    updated = episodeNode["attributes"]!["updated"]!.GetValue<DateTimeOffset>();
-
-                    var audioLinks = episodeNode["attributes"]!["audioLinks"]!.AsArray();
-
-                    var episode = new Episode(episodeId, title, shortTitle, part, serialId, since, till, updated);
-
-                    foreach (var audioLink in audioLinks)
-                    {
-                        string variant = audioLink!["variant"]!.GetValue<string>();
-
-                        var audio = new AudioLink(
-                            $"{episodeId}/{variant}",
-                            episodeId,
-                            audioLink!["playableTill"]!.GetValue<DateTimeOffset>(),
-                            variant,
-                            audioLink!["duration"]!.GetValue<int>(),
-                            audioLink!["url"]!.GetValue<string>()
-                        );
-
-                        episode.AudioLinks.Add(audio);
-                    }
-
                     episodes.Add(episode);
                 }
             }
@@ -203,15 +207,92 @@ public class TitlePageParser
             throw new ExtractorException("Error in 'Episode'", ex);
         }
     }
-   
-    static async Task<string> LoadHtmlContent(string url)
+
+    public Episode GetNonSerialEpisode(string episodeId)
+    {
+        string? episodeResponse = LoadHtmlContent($"https://api.mujrozhlas.cz/episodes/{episodeId}");
+
+        if (episodeResponse is null)
+        {
+            throw new ExtractorException("Non-serial episode is not parsed", null);
+        }
+
+        try
+        {
+            var episodeNode = JsonNode.Parse(episodeResponse);
+            var episode = GetEpisode(episodeId, episodeNode!["data"]);
+
+            if (episode is null)
+            {
+                throw new ExtractorException("Non-serial episode is not found", null);
+            }            
+
+            return episode;
+        }
+
+        catch (Exception ex)
+        {
+            throw new ExtractorException("Error in 'Episode'", ex);
+        }        
+    } 
+
+    Episode? GetEpisode(string serialId, JsonNode? episodeNode)
+    {
+        string episodeId = string.Empty;
+        string title = string.Empty;
+        string shortTitle = string.Empty;
+        DateTimeOffset since = DateTimeOffset.Now;
+        DateTimeOffset till = DateTimeOffset.Now;
+        DateTimeOffset updated = DateTimeOffset.Now;
+        int part = 0;
+
+        if (episodeNode is not null &&
+             episodeNode["type"]!.GetValue<string>() == "episode")
+        {
+            episodeId = episodeNode["id"]!.GetValue<string>();
+            title = episodeNode["attributes"]!["title"]!.GetValue<string>();
+            shortTitle = episodeNode["attributes"]!["shortTitle"]!.GetValue<string>();
+            int? parsedPart = episodeNode["attributes"]?["part"]?.GetValue<int?>();
+            part = parsedPart ?? 1;
+
+            since = episodeNode["attributes"]!["since"]!.GetValue<DateTimeOffset>();
+            till = episodeNode["attributes"]!["till"]!.GetValue<DateTimeOffset>();
+            updated = episodeNode["attributes"]!["updated"]!.GetValue<DateTimeOffset>();
+
+            var audioLinks = episodeNode["attributes"]!["audioLinks"]!.AsArray();
+
+            var episode = new Episode(episodeId, title, shortTitle, part, serialId, since, till, updated);
+
+            foreach (var audioLink in audioLinks)
+            {
+                string variant = audioLink!["variant"]!.GetValue<string>();
+
+                var audio = new AudioLink(
+                    $"{episodeId}/{variant}",
+                    episodeId,
+                    audioLink!["playableTill"]!.GetValue<DateTimeOffset>(),
+                    variant,
+                    audioLink!["duration"]!.GetValue<int>(),
+                    audioLink!["url"]!.GetValue<string>()
+                );
+
+                episode.AudioLinks.Add(audio);
+            }
+
+            return episode;
+        }
+
+        return null;
+    }
+
+    static string LoadHtmlContent(string url)
     {
         using (HttpClient client = new HttpClient())
         {
             try
             {
                 // Download the HTML content from the specified URL
-                return await client.GetStringAsync(url);
+                return client.GetStringAsync(url).Result;
             }
             catch (HttpRequestException e)
             {

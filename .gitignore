@@ -483,6 +483,7 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
+# project specific folders
 episodes/
-audio-book/
+books/
 Mujrozhlas.db

@@ -67,10 +67,12 @@ public class AudioBookBuilder
 
         string workingFolder = FileManager.GetFullPathToSerialFolder(serial);
         runner.Run(buildCommand, workingFolder);
-
+        
+        var titleAuthor = GetTitleAuthor(serial);
         // attach title and cover art
         string attachCommand = $"ffmpeg -y -i {Path.GetFileName(outputFileName)} -i {Path.GetFileName(coverArtFilePath)}" 
                         + $" -map 1 -map 0 -c copy -disposition:0 attached_pic"
+                        + (titleAuthor.Item2 is not null ? $" -metadata artist=\"{titleAuthor.Item2}\"" : string.Empty)
                         + $" _{Path.GetFileName(outputFileName)}"
                         + $" && rm {Path.GetFileName(outputFileName)} && mv _{Path.GetFileName(outputFileName)} {Path.GetFileName(outputFileName)}";
 

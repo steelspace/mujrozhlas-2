@@ -29,22 +29,35 @@ public class Commander
         string serialUrl = addOptions.SerialUrl.Trim();
 
         var parser = new Extractor.TitlePageParser();
-        var parsedEpisodes = parser.ExtractTitleInformation(serialUrl).Result;
+        var parsedEpisode = parser.ExtractTitleInformation(serialUrl);
 
-        var serial = parser.GetSerial(parsedEpisodes).Result;
-        Console.WriteLine($"Serial '{serial.ShortTitle}' was recognized.");
+        var serial = parser.GetSerial(parsedEpisode);
 
-        if (database.GetSerial(serial.Id) != null)
+        if (serial is not null)
         {
-            Console.WriteLine($"Serial '{serial.ShortTitle}' is already added.");
-            return 0;
+            Console.WriteLine($"Serial '{serial.ShortTitle}' was recognized.");
+
+            if (database.GetSerial(serial.Id) != null)
+            {
+                Console.WriteLine($"Serial '{serial.ShortTitle}' is already added.");
+                return 0;
+            }
+
+            database.SaveSerial(serial);
+            GetEpisodes(parser, serial);
+
+            Console.WriteLine($"Serial '{serial.ShortTitle}' was saved into database.");
         }
+        else
+        {
+            parsedEpisode = parser.ExtractNonSerialTitleInformation(serialUrl);
+            var episode = parser.GetNonSerialEpisode(parsedEpisode.Uuid);
+            serial = new Serial(episode.Id, episode.Title, episode.ShortTitle, 1, String.Empty, episode.Updated);
 
-        database.SaveSerial(serial);
-
-        GetEpisodes(parser, serial);
-
-        Console.WriteLine($"Serial '{serial.ShortTitle}' was saved into database.");
+            database.SaveEpisodes(new [] { episode });
+            serial.Updated = DateTimeOffset.Now;
+            database.SaveSerial(serial);
+        }
 
         return 0;
     }
@@ -74,7 +87,7 @@ public class Commander
 
     private void GetEpisodes(TitlePageParser parser, Serial serial)
     {
-        var episodes = parser.GetAvailableEpisodes(serial.Id).Result;
+        var episodes = parser.GetAvailableEpisodes(serial.Id);
         database.SaveEpisodes(episodes);
         serial.Updated = DateTimeOffset.Now;
         database.SaveSerial(serial);
