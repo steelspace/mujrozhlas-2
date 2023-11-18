@@ -30,6 +30,11 @@ public class Downloader
         {
             var episode = database.GetEpisode(download.Id);
 
+            if (download.IsDownloaded && episode == null)
+            {
+                continue;
+            }
+
             DownloadEpisode(episode, download.Url);
         }
     }

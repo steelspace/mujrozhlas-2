@@ -11,11 +11,11 @@
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net8.0/mujrozhlas-2.dll",
-            // "args": ["add", "-u https://www.mujrozhlas.cz/povidka/sedivy-pokoj-cmoud-nebo-navesti-povidky-stefana-grabinskeho-klasika-polske-fantasticke"],
+            // "args": ["add", "-u https://www.mujrozhlas.cz/cetba-s-hvezdickou/pavel-kohout-katyne-rozhlasova-premiera-nestarnouciho-romanu-ze-ktereho-mrazi"],
             // "args": ["download"],
-            "args": ["build"],
+            // "args": ["build"],
             // "args": ["list"],
-            // "args": ["delete", "-i 241db4c4-8137-3bde-b7a5-e87888a49d7b"],
+            "args": ["delete", "-i 241db4c4-8137-3bde-b7a5-e87888a49d7b"],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",

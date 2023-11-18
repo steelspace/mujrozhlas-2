@@ -161,7 +161,12 @@ public class LiteDbDatabase : IDatabase
         using (var db = new LiteDatabase(fileName))
         {
             var episodesCollection = GetEpisodeDbCollection(db);
+            var episodeIds = episodesCollection.Find(e => e.SerialId == serialId)
+                                .Select(e => e.Id).ToList();
             episodesCollection.DeleteMany(e => e.SerialId == serialId);
+
+            var downloadsCollection = GetDownloadDbCollection(db);
+            downloadsCollection.DeleteMany(d => episodeIds.Contains(d.Id));
         }
     }
 }
