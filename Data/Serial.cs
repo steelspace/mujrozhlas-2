@@ -25,6 +25,9 @@ public class Serial
     [JsonPropertyName("total-parts")]
     public int TotalParts { get; set; }
 
+    [JsonPropertyName("non-serial")]
+    public bool IsNonSerial { get; set; } = false;
+
     [JsonPropertyName("cover-art-url")]
     public string CoverArtUrl { get; set; }
 

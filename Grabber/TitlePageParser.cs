@@ -5,10 +5,18 @@ using System.Text.Json.Nodes;
 using MujRozhlas.Data;
 using MujRozhlas.Common;
 using HtmlAgilityPack;
+using MujRozhlas.Database;
 
 namespace Extractor;
 public class TitlePageParser
 {
+    private readonly IDatabase database;
+
+    public TitlePageParser(IDatabase database)
+    {
+        this.database = database;
+    }
+
     public Serial? GetSerial(ParsedEpisode parsedEpisode)
     {
         if (parsedEpisode?.Id is null)
@@ -177,6 +185,15 @@ public class TitlePageParser
 
     public List<Episode> GetAvailableEpisodes(string serialId)
     {
+        var serial = database.GetSerial(serialId);
+
+        if (serial is not null && serial.IsNonSerial)
+        {
+            // there is only 1 part, no need for refresh
+            var episodes = database.GetEpisodes(serialId);
+            return episodes;
+        }
+
         string? serialEpisodesResponse = LoadHtmlContent($"https://api.mujrozhlas.cz/serials/{serialId}/episodes");
 
         if (serialEpisodesResponse is null)

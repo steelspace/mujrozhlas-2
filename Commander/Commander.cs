@@ -30,7 +30,7 @@ public class Commander
 
         foreach (var serialUrl in serialUrls)
         {
-            var parser = new Extractor.TitlePageParser();
+            var parser = new TitlePageParser(database);
             
             // try non serial first by player wrapper
             var parsedEpisode = parser.ExtractTitleInformationFromPlayerWrapper(serialUrl);
@@ -69,6 +69,7 @@ public class Commander
                 parsedEpisode = parser.ExtractTitleInformationFromPlayerWrapper(serialUrl);
                 var episode = parser.GetNonSerialEpisode(parsedEpisode!.Uuid);
                 serial = new Serial(episode.Id, episode.Title, episode.ShortTitle, 1, episode.CoveArtUrl, episode.Updated);
+                serial.IsNonSerial = true;
 
                 Console.WriteLine($"Non-serial title '{serial.ShortTitle}' was recognized.");
 
@@ -103,9 +104,9 @@ public class Commander
         return 0;
     }
 
-    public int RunList(ListOptions _)
+    public int RunList(ListOptions listOptions)
     {
-        RunRefreshEpisodes();
+        RunRefreshEpisodes(listOptions.Force);
         summaryManager.ListSerials();
 
         return 0;
@@ -155,19 +156,19 @@ public class Commander
         return 0;
     }
 
-    int RunRefreshEpisodes()
+    int RunRefreshEpisodes(bool forceRefresh = false)
     {
         Console.WriteLine("Refreshing all episodes.");
 
-        var parser = new Extractor.TitlePageParser();
+        var parser = new TitlePageParser(database);
         var serials = database.GetAllSerials();
 
         foreach (var serial in serials)
         {
-            if ((DateTimeOffset.Now - serial.Updated).TotalHours < 1)
+            if (!forceRefresh && (DateTimeOffset.Now - serial.Updated).TotalHours < 1)
             {
                 Console.WriteLine($"Serial '{serial.ShortTitle}' episodes refresh not needed.");
-                return 0;
+                continue;
             }
 
             Console.WriteLine($"Refreshing serial '{serial.ShortTitle}'.");

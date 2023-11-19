@@ -5,6 +5,8 @@ namespace MujRozhlas.CommandLineArguments;
 [Verb("list", HelpText = "List information in the database.")]
 public class ListOptions
 {
+    [Option('f', "force", HelpText = "Refresh serials and episodes regardless the last update.")]
+    public bool Force { get; set; }    
 }
 
 [Verb("download", HelpText = "Download all episodes that are available.")]

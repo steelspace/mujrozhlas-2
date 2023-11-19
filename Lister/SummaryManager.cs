@@ -26,7 +26,7 @@ public class SummaryManager
             return;
         }
 
-        var table = new Table("Serial", "Id", "Total Parts", "Downloaded", "Available", "Missing", "Book")
+        var table = new Table("Serial", "Id", "Total Parts", "Downloaded", "Missing", "Book")
         {
             Config = TableConfiguration.Markdown()
         };
@@ -45,7 +45,6 @@ public class SummaryManager
 
             table.AddRow(serial.Title.Truncate(30, true), serial.Id, serial.TotalParts,
                     MinMax(downloaded),
-                    MinMax(availableAudioLinks),
                     hasUndownloaded ? "YES" : "NO",
                     isBookReady ? "READY" : allEpisodesDownloaded ? "DOWNLOADED" : "INCOMPLETE");
         }
