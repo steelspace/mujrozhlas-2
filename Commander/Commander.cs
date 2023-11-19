@@ -53,7 +53,7 @@ public class Commander
             {
                 Console.WriteLine($"Serial '{serial.ShortTitle}' was recognized.");
 
-                if (database.GetSerial(serial.Id) != null)
+                if (database.GetSerial(serial.Id) is not null)
                 {
                     Console.WriteLine($"Serial '{serial.ShortTitle}' is already added.");
                     continue;
@@ -68,6 +68,14 @@ public class Commander
             {
                 parsedEpisode = parser.ExtractTitleInformationFromPlayerWrapper(serialUrl);
                 var episode = parser.GetNonSerialEpisode(parsedEpisode!.Uuid);
+
+                serial = database.GetSerial(episode.Id);
+                if (serial is not null)
+                {
+                    Console.WriteLine($"Non-serial '{serial.ShortTitle}' is already added.");
+                    continue;
+                }
+
                 serial = new Serial(episode.Id, episode.Title, episode.ShortTitle, 1, episode.CoveArtUrl, episode.Updated);
                 serial.IsNonSerial = true;
 

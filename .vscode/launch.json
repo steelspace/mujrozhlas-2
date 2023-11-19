@@ -12,10 +12,10 @@
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net8.0/mujrozhlas-2.dll",
             // unavailable
-            // "args": ["add", "-u https://www.mujrozhlas.cz/sobotni-drama/frantisek-pavlicek-davno-davno-jiz-tomu-zakazana-hra-o-bozene-nemcove-pro-vlastu"],
+            "args": ["add", "-u https://www.mujrozhlas.cz/hra-na-nedeli/karel-cop-muz-po-kterem-jdou-absurdni-pribeh-obycejneho-urednika https://www.mujrozhlas.cz/hra-na-nedeli/premysl-rut-existence-dusana-rouse-usmevny-pribeh-o-vodnikovi-z-prazskeho-podskali https://www.mujrozhlas.cz/radiokniha/bohumil-hrabal-proluky"],
             // "args": ["download"],
             // "args": ["build"],
-            "args": ["list", "-f"],
+            // "args": ["list", "-f"],
             // "args": ["delete", "-i 92f8ac20-7909-3aec-90b6-7ad1f304433f 0c35164b-9e52-30dc-b079-918b04b584b9"],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
