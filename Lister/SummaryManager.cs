@@ -26,7 +26,7 @@ public class SummaryManager
             return;
         }
 
-        var table = new Table("Serial", "Id", "Total Parts", "Downloaded", "Missing", "Book")
+        var table = new Table("Serial", "Id", "Total Parts", "Downloaded", "State", "Book")
         {
             Config = TableConfiguration.Markdown()
         };
@@ -40,12 +40,14 @@ public class SummaryManager
             bool hasUndownloaded =
                 downloaded.MaxOrDefault(e => e.Part) < availableAudioLinks.MaxOrDefault(e => e.Part);
 
+            bool isGone = downloaded.MaxOrDefault(e => e.Part) < availableAudioLinks.MinDefault(e => e.Part);
+
             bool isBookReady = FileManager.IsAudioBookReady(serial);
             bool allEpisodesDownloaded = IsSerialCompletelyDownloaded(database, serial);
 
             table.AddRow(serial.Title.Truncate(30, true), serial.Id, serial.TotalParts,
                     MinMax(downloaded),
-                    hasUndownloaded ? "YES" : "NO",
+                    isGone ? "MISSED" : hasUndownloaded ? "TO DOWNLOAD" : "OK",
                     isBookReady ? "READY" : allEpisodesDownloaded ? "DOWNLOADED" : "INCOMPLETE");
         }
 
