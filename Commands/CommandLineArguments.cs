@@ -12,11 +12,11 @@ public class DownloadOptions
 {
 }
 
-[Verb("add", HelpText = "Add serial to the database. Pass an URL from mujrozhlas.cz.")]
+[Verb("add", HelpText = "Add serials to the database. Pass URLs from mujrozhlas.cz.")]
 public class AddOptions
 {
-    [Option('u', "url", Required = true, HelpText = "Serial URL from mujrozhlas.cz web site.")]
-    public string SerialUrl { get; set; } = String.Empty;
+    [Option('u', "url", Required = true, HelpText = "Space separated serial URLs from mujrozhlas.cz web site.")]
+    public string SerialUrls { get; set; } = String.Empty;
 }
 
 [Verb("build", HelpText = "Build audio books from downloaded episodes")]
@@ -32,6 +32,6 @@ public class BuildOptions
 [Verb("delete", HelpText = "Build audio books from downloaded episodes")]
 public class DeleteOptions
 {
-    [Option('i', "id", Required = true, HelpText = "Serial ID to be removed. User 'list' verb to determine serial ID.")]
-    public string SerialId { get; set; } = String.Empty;
+    [Option('i', "id", Required = true, HelpText = "Space separated serial IDs to be removed. Use 'list' verb to determine serial ID.")]
+    public string SerialIds { get; set; } = String.Empty;
 }

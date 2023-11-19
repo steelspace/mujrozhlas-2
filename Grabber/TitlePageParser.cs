@@ -9,43 +9,6 @@ using HtmlAgilityPack;
 namespace Extractor;
 public class TitlePageParser
 {
-    public ParsedEpisode ExtractTitleInformation(string url)
-    {
-        // Load HTML content from the URL
-        string htmlContent = LoadHtmlContent(url);
-        // Load HTML string into HtmlDocument
-        var doc = new HtmlDocument();
-        doc.LoadHtml(htmlContent);
-
-        // Select nodes with class "b-episode"
-        var episodeNodes = doc.DocumentNode.SelectNodes("//article[contains(@class, 'b-episode')]");
-        var episodeNode = episodeNodes?.FirstOrDefault();
-
-        if (episodeNode is null)
-        {
-            throw new ExtractorException("No episodes found with class 'b-episode'");
-
-        }
-
-        Console.WriteLine($"Episodes found, parsing continues: {url}");
-
-        // Get the data-entry attribute value
-        string dataEntryValue = episodeNode.GetAttributeValue("data-entry", string.Empty);
-
-        var decodedHtml = WebUtility.HtmlDecode(dataEntryValue);
-
-        var episode = JsonSerializer.Deserialize<ParsedEpisode>(decodedHtml);
-
-        if (episode is null)
-        {
-            throw new ExtractorException("Episode is not parsed");
-        }
-
-        Console.WriteLine($"Episode {episode.Uuid} found.");
-
-        return episode;
-    }
-
     public Serial? GetSerial(ParsedEpisode parsedEpisode)
     {
         if (parsedEpisode?.Id is null)
@@ -138,7 +101,44 @@ public class TitlePageParser
         }
     }
 
-    public ParsedEpisode ExtractNonSerialTitleInformation(string url)
+    public ParsedEpisode ExtractTitleInformation(string url)
+    {
+        // Load HTML content from the URL
+        string htmlContent = LoadHtmlContent(url);
+        // Load HTML string into HtmlDocument
+        var doc = new HtmlDocument();
+        doc.LoadHtml(htmlContent);
+
+        // Select nodes with class "b-episode"
+        var episodeNodes = doc.DocumentNode.SelectNodes("//article[contains(@class, 'b-episode')]");
+        var episodeNode = episodeNodes?.FirstOrDefault();
+
+        if (episodeNode is null)
+        {
+            throw new ExtractorException("No episodes found with class 'b-episode'");
+
+        }
+
+        Console.WriteLine($"Episodes found, parsing continues: {url}");
+
+        // Get the data-entry attribute value
+        string dataEntryValue = episodeNode.GetAttributeValue("data-entry", string.Empty);
+
+        var decodedHtml = WebUtility.HtmlDecode(dataEntryValue);
+
+        var episode = JsonSerializer.Deserialize<ParsedEpisode>(decodedHtml);
+
+        if (episode is null)
+        {
+            throw new ExtractorException("Episode is not parsed");
+        }
+
+        Console.WriteLine($"Episode {episode.Uuid} found.");
+
+        return episode;
+    }
+
+    public ParsedEpisode? ExtractTitleInformationFromPlayerWrapper(string url)
     {
         // Load HTML content from the URL
         string htmlContent = LoadHtmlContent(url);
@@ -153,7 +153,7 @@ public class TitlePageParser
 
         if (episodeNode is null)
         {
-            throw new ExtractorException("No episodes found with class 'player-wrapper'");
+            return null;
         }
 
         Console.WriteLine($"Episodes found, parsing continues: {url}");
@@ -241,6 +241,7 @@ public class TitlePageParser
         string episodeId = string.Empty;
         string title = string.Empty;
         string shortTitle = string.Empty;
+        string coverArtUrl = string.Empty;
         DateTimeOffset since = DateTimeOffset.Now;
         DateTimeOffset till = DateTimeOffset.Now;
         DateTimeOffset updated = DateTimeOffset.Now;
@@ -258,10 +259,11 @@ public class TitlePageParser
             since = episodeNode["attributes"]!["since"]!.GetValue<DateTimeOffset>();
             till = episodeNode["attributes"]!["till"]!.GetValue<DateTimeOffset>();
             updated = episodeNode["attributes"]!["updated"]!.GetValue<DateTimeOffset>();
+            coverArtUrl = episodeNode["attributes"]!["asset"]!["url"]!.GetValue<string>();
 
             var audioLinks = episodeNode["attributes"]!["audioLinks"]!.AsArray();
 
-            var episode = new Episode(episodeId, title, shortTitle, part, serialId, since, till, updated);
+            var episode = new Episode(episodeId, title, shortTitle, part, serialId, since, till, updated, coverArtUrl);
 
             foreach (var audioLink in audioLinks)
             {

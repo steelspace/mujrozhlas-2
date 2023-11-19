@@ -26,73 +26,61 @@ public class Commander
 
     public int RunAdd(AddOptions addOptions)
     {
-        string serialUrl = addOptions.SerialUrl.Trim();
+        var serialUrls = addOptions.SerialUrls.Trim().Split(" ");
 
-        var parser = new Extractor.TitlePageParser();
-        var parsedEpisode = parser.ExtractTitleInformation(serialUrl);
-
-        var serial = parser.GetSerial(parsedEpisode);
-
-        if (serial is not null)
+        foreach (var serialUrl in serialUrls)
         {
-            Console.WriteLine($"Serial '{serial.ShortTitle}' was recognized.");
+            var parser = new Extractor.TitlePageParser();
+            
+            // try non serial first by player wrapper
+            var parsedEpisode = parser.ExtractTitleInformationFromPlayerWrapper(serialUrl);
 
-            if (database.GetSerial(serial.Id) != null)
+            if (parsedEpisode is null)
             {
-                Console.WriteLine($"Serial '{serial.ShortTitle}' is already added.");
-                return 0;
+                // probably serial
+                parsedEpisode = parser.ExtractTitleInformation(serialUrl);
             }
 
-            database.SaveSerial(serial);
-            GetEpisodes(parser, serial);
+            if (parsedEpisode is null)
+            {
+                Console.WriteLine($"No audio found on '{serialUrl}'.");
+                continue;
+            }
 
-            Console.WriteLine($"Serial '{serial.ShortTitle}' was saved into database.");
-        }
-        else
-        {
-            parsedEpisode = parser.ExtractNonSerialTitleInformation(serialUrl);
-            var episode = parser.GetNonSerialEpisode(parsedEpisode.Uuid);
-            serial = new Serial(episode.Id, episode.Title, episode.ShortTitle, 1, String.Empty, episode.Updated);
+            var serial = parser.GetSerial(parsedEpisode);
 
-            database.SaveEpisodes(new [] { episode });
-            serial.Updated = DateTimeOffset.Now;
-            database.SaveSerial(serial);
+            if (serial is not null)
+            {
+                Console.WriteLine($"Serial '{serial.ShortTitle}' was recognized.");
+
+                if (database.GetSerial(serial.Id) != null)
+                {
+                    Console.WriteLine($"Serial '{serial.ShortTitle}' is already added.");
+                    continue;
+                }
+
+                database.SaveSerial(serial);
+                GetEpisodes(parser, serial);
+
+                Console.WriteLine($"Serial '{serial.ShortTitle}' was saved into database.");
+            }
+            else
+            {
+                parsedEpisode = parser.ExtractTitleInformationFromPlayerWrapper(serialUrl);
+                var episode = parser.GetNonSerialEpisode(parsedEpisode!.Uuid);
+                serial = new Serial(episode.Id, episode.Title, episode.ShortTitle, 1, episode.CoveArtUrl, episode.Updated);
+
+                Console.WriteLine($"Non-serial title '{serial.ShortTitle}' was recognized.");
+
+                database.SaveEpisodes(new[] { episode });
+                serial.Updated = DateTimeOffset.Now;
+                database.SaveSerial(serial);
+
+                Console.WriteLine($"Non-serial title '{serial.ShortTitle}' was saved into database.");
+            }
         }
 
         return 0;
-    }
-
-    int RunRefreshEpisodes()
-    {
-        Console.WriteLine("Refreshing all episodes.");
-
-        var parser = new Extractor.TitlePageParser();
-        var serials = database.GetAllSerials();
-
-        foreach (var serial in serials)
-        {
-            if ((DateTimeOffset.Now - serial.Updated).TotalHours < 1)
-            {
-                Console.WriteLine($"Serial '{serial.ShortTitle}' episodes refresh not needed.");
-                return 0;
-            }
-
-            Console.WriteLine($"Refreshing serial '{serial.ShortTitle}'.");
-
-            GetEpisodes(parser, serial);
-        }
-
-        return 0;
-    }
-
-    private void GetEpisodes(TitlePageParser parser, Serial serial)
-    {
-        var episodes = parser.GetAvailableEpisodes(serial.Id);
-        database.SaveEpisodes(episodes);
-        serial.Updated = DateTimeOffset.Now;
-        database.SaveSerial(serial);
-
-        Console.WriteLine($"Serial '{serial.ShortTitle}' has {episodes.Count} parts available from total {serial.TotalParts}.");
     }
 
     int RunQueue()
@@ -109,11 +97,11 @@ public class Commander
     {
         RunRefreshEpisodes();
         RunQueue();
-        
+
         var downloader = new Downloader.Downloader(database, runner);
         downloader.DownloadAllAudioLinks();
         return 0;
-    }    
+    }
 
     public int RunList(ListOptions _)
     {
@@ -143,23 +131,60 @@ public class Commander
 
     public int RunDelete(DeleteOptions opts)
     {
-        string serialId = opts.SerialId.Trim();
-        var serial = database.GetSerial(serialId);
+        var serialIds = opts.SerialIds.Trim().Split(" ");
 
-        if (serial == null)
+        foreach (var serialId in serialIds)
         {
-            Console.WriteLine($"Serial '{serialId}' was not found.");
-            return 0;
+            var serial = database.GetSerial(serialId);
+
+            if (serial == null)
+            {
+                Console.WriteLine($"Serial '{serialId}' was not found.");
+                return 0;
+            }
+            else
+            {
+                database.DeleteSerialEpisodes(serialId);
+                database.DeleteSerial(serialId);
+                FileManager.DeleteSerialFiles(serialId);
+
+                Console.WriteLine($"Serial '{serial.ShortTitle}' was deleted.");
+            }
+
         }
-        else
-        {
-            database.DeleteSerialEpisodes(serialId);
-            database.DeleteSerial(serialId);
-            FileManager.DeleteSerialFiles(serialId);
+        return 0;
+    }
 
-            Console.WriteLine($"Serial '{serial.ShortTitle}' was deleted.");
+    int RunRefreshEpisodes()
+    {
+        Console.WriteLine("Refreshing all episodes.");
+
+        var parser = new Extractor.TitlePageParser();
+        var serials = database.GetAllSerials();
+
+        foreach (var serial in serials)
+        {
+            if ((DateTimeOffset.Now - serial.Updated).TotalHours < 1)
+            {
+                Console.WriteLine($"Serial '{serial.ShortTitle}' episodes refresh not needed.");
+                return 0;
+            }
+
+            Console.WriteLine($"Refreshing serial '{serial.ShortTitle}'.");
+
+            GetEpisodes(parser, serial);
         }
 
         return 0;
+    }
+
+    void GetEpisodes(TitlePageParser parser, Serial serial)
+    {
+        var episodes = parser.GetAvailableEpisodes(serial.Id);
+        database.SaveEpisodes(episodes);
+        serial.Updated = DateTimeOffset.Now;
+        database.SaveSerial(serial);
+
+        Console.WriteLine($"Serial '{serial.ShortTitle}' has {episodes.Count} parts available from total {serial.TotalParts}.");
     }
 }

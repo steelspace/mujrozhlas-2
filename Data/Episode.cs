@@ -3,7 +3,7 @@ namespace MujRozhlas.Data;
 
 public class Episode : IPart
 {
-    public Episode(string id, string title, string shortTitle, int part, string serialId, DateTimeOffset since, DateTimeOffset till, DateTimeOffset updated)
+    public Episode(string id, string title, string shortTitle, int part, string serialId, DateTimeOffset since, DateTimeOffset till, DateTimeOffset updated, string coverArtUrl = "")
     {
         Id = id;
         Title = title;
@@ -13,6 +13,7 @@ public class Episode : IPart
         Since = since;
         Till = till;
         Updated = updated;
+        CoveArtUrl = coverArtUrl;
     }
 
     [JsonPropertyName("id")]
@@ -26,6 +27,9 @@ public class Episode : IPart
     
     [JsonPropertyName("short-title")]
     public string ShortTitle { get; set; }
+
+    [JsonPropertyName("cover-art-url")]
+    public string CoveArtUrl { get; set; }
 
     [JsonPropertyName("part")]
     public int Part { get; set; }
