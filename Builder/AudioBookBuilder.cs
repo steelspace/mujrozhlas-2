@@ -139,7 +139,7 @@ public class AudioBookBuilder
 
         if (titleAuthor.Item2 is not null)
         {
-            builder.AppendLine($"artist={titleAuthor.Item1}");
+            builder.AppendLine($"artist={titleAuthor.Item2}");
         }
 
         var episodes = database.GetEpisodes(serial.Id);
