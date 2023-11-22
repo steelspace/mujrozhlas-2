@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using MujRozhlas.Data;
@@ -52,10 +53,10 @@ public class AudioBookBuilder
         string coverArtFilePath = FileManager.DownloadImageToOutputFilder(serial, coverArtFile);
 
         string listFilePath = FileManager.WriteBuilderTextFile(serial, listFileName, serialFileNames);
-        string outputFileName = FileManager.GetAudioBookFileName(serial);
-        string niceOutputFileName = FileManager.GetNiceAudioBookFileName(serial);
+        string audioBookFileName = FileManager.GetAudioBookFileName(serial);
+        string niceAudioBookFileName = FileManager.GetNiceAudioBookFileName(serial);
 
-        if (File.Exists(niceOutputFileName))
+        if (File.Exists(niceAudioBookFileName))
         {
             Console.WriteLine($"Audiobook '{serial.ShortTitle}' is already generated.");
             return;
@@ -63,24 +64,29 @@ public class AudioBookBuilder
 
         // build
         string buildCommand = String.Format($"ffmpeg -f concat -safe 0 -i {Path.GetFileName(listFilePath)} -i {Path.GetFileName(metadataFilePath)}"
-            + $" -vn -y -b:a 128k -acodec aac -ac 2 {Path.GetFileName(outputFileName)}");
+            + $" -vn -y -b:a 128k -acodec aac -ac 2 {Path.GetFileName(audioBookFileName)}");
 
         string workingFolder = FileManager.GetFullPathToSerialFolder(serial);
         runner.Run(buildCommand, workingFolder);
         
         var titleAuthor = GetTitleAuthor(serial);
         // attach title and cover art
-        string attachCommand = $"ffmpeg -y -i {Path.GetFileName(outputFileName)} -i {Path.GetFileName(coverArtFilePath)}" 
+        string attachCommand = $"ffmpeg -y -i {Path.GetFileName(audioBookFileName)} -i {Path.GetFileName(coverArtFilePath)}" 
+                        // + (titleAuthor.Item1 is not null ? $" -metadata title=\"{titleAuthor.Item1}\"" : string.Empty)
+                        // + (titleAuthor.Item2 is not null ? $" -metadata artist=\"{titleAuthor.Item2}\"" : string.Empty)
                         + $" -map 1 -map 0 -c copy -disposition:0 attached_pic"
-                        + (titleAuthor.Item2 is not null ? $" -metadata artist=\"{titleAuthor.Item2}\"" : string.Empty)
-                        + $" _{Path.GetFileName(outputFileName)}"
-                        + $" && rm {Path.GetFileName(outputFileName)} && mv _{Path.GetFileName(outputFileName)} {Path.GetFileName(outputFileName)}";
+                        + $" _{Path.GetFileName(audioBookFileName)}";
+                        // + $" && rm {Path.GetFileName(outputFileName)} && mv _{Path.GetFileName(outputFileName)} {Path.GetFileName(outputFileName)}";
 
         runner.Run(attachCommand, workingFolder);
 
+        string serialFolder = FileManager.GetFullPathToSerialFolder(serial);
+
+        File.Move(Path.Combine(serialFolder, "_" + Path.GetFileName(audioBookFileName)),
+             Path.Combine(serialFolder, Path.GetFileName(audioBookFileName)), true);
         FileManager.RenameAudioBook(serial);
 
-        Console.WriteLine($"Audio book {niceOutputFileName} created.");
+        Console.WriteLine($"Audio book {niceAudioBookFileName} created.");
     }
 
     string? CreateList(Serial serial)
