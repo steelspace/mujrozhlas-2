@@ -181,11 +181,11 @@ public class AudioBookBuilder
             string author = match.Groups[1].Value;
             string serialTitle = match.Groups[2].Value;
 
-            return (serialTitle, author);
+            return (serialTitle.Trim(), author.Trim());
         }
         else
         {
-            return (serial.ShortTitle, null);
+            return (serial.ShortTitle.Trim(), null);
         }        
     }
 
