@@ -29,6 +29,9 @@ public class BuildOptions
 
     [Option('f', "force", HelpText = "Build serial audio book even if some episodes are missing")]
     public bool Force { get; set; }
+
+    [Option('z', "zip", HelpText = "Build audio book as zip file instead of .mp4b.")]
+    public bool Zip { get; set; }
 }
 
 [Verb("delete", HelpText = "Build audio books from downloaded episodes")]

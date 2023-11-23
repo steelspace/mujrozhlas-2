@@ -124,15 +124,20 @@ public class Commander
     {
         string serialId = opts.SerialId.Trim();
 
-        if (string.IsNullOrEmpty(serialId))
-        {
-            var builder = new AudioBookBuilder(database, runner);
-            var serials = database.GetAllSerials();
+        var builder = new AudioBookBuilder(database, runner);
+        var serials = database.GetAllSerials();
 
-            foreach (var serial in serials)
-            {
-                builder.BuildBook(serial);
-            }
+        // filter for serial ID
+        serials = serials.Where(s => s.Id == serialId).ToList();
+
+        if (serials.Count < 1)
+        {
+            Console.WriteLine($"Serial ID {serialId} was not found.");
+        }
+
+        foreach (var serial in serials)
+        {
+            builder.BuildBook(serial);
         }
 
         return 0;
