@@ -146,7 +146,7 @@ public static class FileManager
         foreach (var file in files)
         {
             Console.WriteLine($"Adding to ZIP -> {chapterNumber:D2} - {serialName}");
-            archive.CreateEntryFromFile(file, $"{chapterNumber:D2} - {serialName}");
+            archive.CreateEntryFromFile(file, $"{chapterNumber:D2} - {serialName}.mp4");
             chapterNumber++;
         }
     }
