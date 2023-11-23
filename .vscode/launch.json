@@ -15,7 +15,7 @@
             // "args": ["add", "-u https://www.mujrozhlas.cz/radiokniha/masaryk-pro-21-stoleti-pavel-kosatik-jiny-tgm"],
             // "args": ["download"],
             // "args": ["build"],
-            "args": ["build", "-i c67ded26-ad1c-32e8-a997-bbe8d107f3c4", "-f", "-z"],
+            "args": ["build", "-i c67ded26-ad1c-32e8-a997-bbe8d107f3c4", "-z"],
             // "args": ["list"],
             // "args": ["delete", "-i 92f8ac20-7909-3aec-90b6-7ad1f304433f 0c35164b-9e52-30dc-b079-918b04b584b9"],
             "cwd": "${workspaceFolder}",

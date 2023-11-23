@@ -37,6 +37,49 @@ public class AudioBookBuilder
 
         string prefix = new SanitizedFileName(serial.Id).Value;
 
+        if (zip)
+        {
+            CreateZip(serial, force);
+        }
+        else
+        {
+            CreateAudioBook(serial, force, prefix);
+        }
+    }
+
+    void CreateZip(Serial serial, bool force)
+    {
+        string serialFolder = FileManager.GetFullPathToSerialFolder(serial);
+        var serialFileNames = GetSerialFiles(serial).Select(s => Path.Combine(serialFolder, s)).ToList();
+
+        if (serialFileNames.Count == 0)
+        {
+            Console.WriteLine($"No downloaded files for serial {serial.ShortTitle}.");
+            return;
+        }
+
+        string audioBookFileName = FileManager.GetAudioBookFileName(serial, true);
+        string niceAudioBookFileName = FileManager.GetNiceAudioBookFileName(serial, true);
+
+        if (!force && File.Exists(niceAudioBookFileName))
+        {
+            Console.WriteLine($"Audiobook '{serial.ShortTitle}' is already generated.");
+            return;
+        }
+
+        string bookFilePath = GetBookFilePath(audioBookFileName, serialFolder);
+
+        FileManager.ZipAudioBook(serialFileNames, bookFilePath, serial.ShortTitle);
+
+        File.Move(bookFilePath,
+             Path.Combine(serialFolder, Path.GetFileName(audioBookFileName)), true);
+        FileManager.RenameAudioBook(serial, true);
+
+        Console.WriteLine($"Audio book {niceAudioBookFileName} created.");        
+    }
+
+    void CreateAudioBook(Serial serial, bool force, string prefix)
+    {
         var metadataFile = $"{prefix}-metadata.txt";
         var coverArtFile = $"{prefix}-cover.jpg";
         var listFileName = $"{prefix}-list.txt";
@@ -69,10 +112,10 @@ public class AudioBookBuilder
 
         string workingFolder = FileManager.GetFullPathToSerialFolder(serial);
         runner.Run(buildCommand, workingFolder);
-        
+
         var titleAuthor = GetTitleAuthor(serial);
         // attach title and cover art
-        string attachCommand = $"ffmpeg -y -i {Path.GetFileName(audioBookFileName)} -i {Path.GetFileName(coverArtFilePath)}" 
+        string attachCommand = $"ffmpeg -y -i {Path.GetFileName(audioBookFileName)} -i {Path.GetFileName(coverArtFilePath)}"
                         // + (titleAuthor.Item1 is not null ? $" -metadata title=\"{titleAuthor.Item1}\"" : string.Empty)
                         // + (titleAuthor.Item2 is not null ? $" -metadata artist=\"{titleAuthor.Item2}\"" : string.Empty)
                         + $" -map 1 -map 0 -c copy -disposition:0 attached_pic"
@@ -82,8 +125,7 @@ public class AudioBookBuilder
         runner.Run(attachCommand, workingFolder);
 
         string serialFolder = FileManager.GetFullPathToSerialFolder(serial);
-
-        string bookFilePath = Path.Combine(serialFolder, "_" + Path.GetFileName(audioBookFileName));
+        string bookFilePath = GetBookFilePath(audioBookFileName, serialFolder);
 
         if (!File.Exists(bookFilePath))
         {
@@ -98,16 +140,34 @@ public class AudioBookBuilder
         Console.WriteLine($"Audio book {niceAudioBookFileName} created.");
     }
 
+    static string GetBookFilePath(string audioBookFileName, string serialFolder)
+    {
+        return Path.Combine(serialFolder, "_" + Path.GetFileName(audioBookFileName));
+    }
+
     string? CreateList(Serial serial)
     {
+        var fileNames =  GetSerialFiles(serial);
+
+        var builder = new StringBuilder();
+
+        foreach (var part in fileNames)
+        {
+            builder.AppendLine($"file '{part}'");
+        }
+
+        return builder.ToString();
+    }
+
+    List<string> GetSerialFiles(Serial serial)
+    {
+        var fileNames = new List<string>();
         var episodes = database.GetEpisodes(serial.Id);
 
         if (episodes.Count == 0)
         {
-            return null;
+            return fileNames;
         }
-
-        var fileNames = new List<string>();
 
         // order is important
         foreach (var episode in episodes.OrderBy(e => e.Part))
@@ -119,14 +179,7 @@ public class AudioBookBuilder
             }
         }
 
-        var builder = new StringBuilder();
-
-        foreach (var part in fileNames)
-        {
-            builder.AppendLine($"file '{part}'");
-        }
-
-        return builder.ToString();
+        return fileNames;
     }
 
     string CreateMetadata(Serial serial)

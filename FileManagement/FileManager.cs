@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using MujRozhlas.Data;
 using MujRozhlas.Downloader;
 
@@ -45,28 +46,31 @@ public static class FileManager
     }
 
     static string AudioFileSuffix = ".mp4";
+    static string ZipFileSuffix = ".zip";
 
     public static string GetFileName(Episode episode)
     {
         string serialFolder = EnsureSerialFolder(episode.SerialId);
 
-        string path = Path.Combine(serialFolder, new SanitizedFileName(episode.Id).Value + AudioFileSuffix);        
+        string path = Path.Combine(serialFolder, new SanitizedFileName(episode.Id).Value + AudioFileSuffix);
         return path;
     }
 
-    public static string GetAudioBookFileName(Serial serial)
+    public static string GetAudioBookFileName(Serial serial, bool zip = false)
     {
         string serialFolder = EnsureSerialFolder(serial.Id);
 
-        string path = Path.Combine(serialFolder, new SanitizedFileName(serial.Id).Value + "-book" + AudioFileSuffix);        
+        string path = Path.Combine(serialFolder, new SanitizedFileName(serial.Id).Value + "-book"
+            + (zip ? ZipFileSuffix : AudioFileSuffix));
         return path;
     }
 
-    public static string GetNiceAudioBookFileName(Serial serial)
+    public static string GetNiceAudioBookFileName(Serial serial, bool zip = false)
     {
         string serialFolder = EnsureAudioBooksFolder();
 
-        string path = Path.Combine(serialFolder, new SanitizedFileName(serial.Title).Value + AudioFileSuffix);        
+        string path = Path.Combine(serialFolder, new SanitizedFileName(serial.Title).Value 
+            + (zip ? ZipFileSuffix : AudioFileSuffix));
         return path;
     }
 
@@ -117,13 +121,13 @@ public static class FileManager
         return path;
     }
 
-    public static void RenameAudioBook(Serial serial)
+    public static void RenameAudioBook(Serial serial, bool zip = false)
     {
-        string currentFileName = GetAudioBookFileName(serial);
+        string currentFileName = GetAudioBookFileName(serial, zip);
 
         if (File.Exists(currentFileName))
         {
-            File.Move(currentFileName, GetNiceAudioBookFileName(serial), true);
+            File.Move(currentFileName, GetNiceAudioBookFileName(serial, zip), true);
         }
     }
 
@@ -131,5 +135,19 @@ public static class FileManager
     {
         string path = EnsureSerialFolder(serialId);
         Directory.Delete(path, true);
+    }
+
+    public static void ZipAudioBook(IEnumerable<string> files, string zipFilePath, string serialName)
+    {
+        File.Delete(zipFilePath);
+        using var archive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create);
+
+        int chapterNumber = 1;
+        foreach (var file in files)
+        {
+            Console.WriteLine($"Adding to ZIP -> {chapterNumber:D2} - {serialName}");
+            archive.CreateEntryFromFile(file, $"{chapterNumber:D2} - {serialName}");
+            chapterNumber++;
+        }
     }
 }
