@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 
 namespace MujRozhlas.Runner;
 
@@ -14,6 +15,7 @@ public class BashRunner : IRunner
         proc.StartInfo.UseShellExecute = false;
         proc.StartInfo.RedirectStandardOutput = false;
         proc.StartInfo.RedirectStandardError = false;
+
         if (!string.IsNullOrEmpty(runInFolder))
         {
             proc.StartInfo.WorkingDirectory = runInFolder;

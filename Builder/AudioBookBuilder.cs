@@ -113,9 +113,9 @@ public class AudioBookBuilder
         string workingFolder = FileManager.GetFullPathToSerialFolder(serial);
         runner.Run(buildCommand, workingFolder);
 
-        var titleAuthor = GetTitleAuthor(serial);
+        var titleAuthor = GetTitleAuthor(serial.ShortTitle);
         // attach title and cover art
-        string attachCommand = $"ffmpeg -y -i {Path.GetFileName(audioBookFileName)} -i {Path.GetFileName(coverArtFilePath)}"
+        string attachCommand = $"export LANG=C.UTF-8 && ffmpeg -y -i {Path.GetFileName(audioBookFileName)} -i {Path.GetFileName(coverArtFilePath)}"
                         // + (titleAuthor.Item1 is not null ? $" -metadata title=\"{titleAuthor.Item1}\"" : string.Empty)
                         // + (titleAuthor.Item2 is not null ? $" -metadata artist=\"{titleAuthor.Item2}\"" : string.Empty)
                         + $" -map 1 -map 0 -c copy -disposition:0 attached_pic"
@@ -202,7 +202,7 @@ public class AudioBookBuilder
         var builder = new StringBuilder();
         builder.AppendLine(";FFMETADATA1");
 
-        var titleAuthor = GetTitleAuthor(serial);
+        var titleAuthor = GetTitleAuthor(serial.ShortTitle);
         builder.AppendLine($"title={NormalizeText(titleAuthor.Item1)}");
 
         if (titleAuthor.Item2 is not null)
@@ -239,10 +239,10 @@ public class AudioBookBuilder
         return builder.ToString();
     }
 
-    (string, string?) GetTitleAuthor(Serial serial)
+    public static (string, string?) GetTitleAuthor(string title)
     {
         const string pattern = @"(.*?):(.*)";
-        var match = Regex.Match(serial.ShortTitle, pattern);
+        var match = Regex.Match(title, pattern);
         
         if (match.Groups.Count == 3)
         {
@@ -253,7 +253,7 @@ public class AudioBookBuilder
         }
         else
         {
-            return (serial.ShortTitle.Trim(), null);
+            return (title.Trim(), null);
         }        
     }
 
