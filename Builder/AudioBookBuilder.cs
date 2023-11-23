@@ -116,8 +116,8 @@ public class AudioBookBuilder
         var titleAuthor = GetTitleAuthor(serial.ShortTitle);
         // attach title and cover art
         string attachCommand = $"export LANG=C.UTF-8 && ffmpeg -y -i {Path.GetFileName(audioBookFileName)} -i {Path.GetFileName(coverArtFilePath)}"
-                        // + (titleAuthor.Item1 is not null ? $" -metadata title=\"{titleAuthor.Item1}\"" : string.Empty)
-                        // + (titleAuthor.Item2 is not null ? $" -metadata artist=\"{titleAuthor.Item2}\"" : string.Empty)
+                        + (titleAuthor.Item1 is not null ? $" -metadata title='{titleAuthor.Item1}'" : string.Empty)
+                        + (titleAuthor.Item2 is not null ? $" -metadata artist='{titleAuthor.Item2}'" : string.Empty)
                         + $" -map 1 -map 0 -c copy -disposition:0 attached_pic"
                         + $" _{Path.GetFileName(audioBookFileName)}"
                         + " -hide_banner";
