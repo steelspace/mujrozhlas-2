@@ -137,7 +137,7 @@ public class Commander
 
         foreach (var serial in serials)
         {
-            builder.BuildBook(serial);
+            builder.BuildBook(serial, opts.Force, opts.Zip);
         }
 
         return 0;

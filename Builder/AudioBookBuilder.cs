@@ -21,15 +21,15 @@ public class AudioBookBuilder
         this.runner = runner;
     }
 
-    public void BuildBook(Serial serial)
+    public void BuildBook(Serial serial, bool force, bool zip)
     {
-        if (FileManager.IsAudioBookReady(serial))
+        if (!force && FileManager.IsAudioBookReady(serial))
         {
             Console.WriteLine($"Audiobook for '{serial.ShortTitle}' is already built.");
             return;
         }
 
-        if (!SummaryManager.IsSerialCompletelyDownloaded(database, serial))
+        if (!force && !SummaryManager.IsSerialCompletelyDownloaded(database, serial))
         {
             Console.WriteLine($"Episodes for '{serial.ShortTitle}' are not downloaded, skipping.");
             return;
@@ -56,7 +56,7 @@ public class AudioBookBuilder
         string audioBookFileName = FileManager.GetAudioBookFileName(serial);
         string niceAudioBookFileName = FileManager.GetNiceAudioBookFileName(serial);
 
-        if (File.Exists(niceAudioBookFileName))
+        if (!force && File.Exists(niceAudioBookFileName))
         {
             Console.WriteLine($"Audiobook '{serial.ShortTitle}' is already generated.");
             return;
@@ -65,7 +65,7 @@ public class AudioBookBuilder
         // build
         string buildCommand = String.Format($"ffmpeg -f concat -safe 0 -i {Path.GetFileName(listFilePath)} -i {Path.GetFileName(metadataFilePath)}"
             + $" -vn -y -b:a 128k -acodec aac -ac 2 {Path.GetFileName(audioBookFileName)}")
-            + " -hide_banner -loglevel error";
+            + " -hide_banner";
 
         string workingFolder = FileManager.GetFullPathToSerialFolder(serial);
         runner.Run(buildCommand, workingFolder);
@@ -77,13 +77,21 @@ public class AudioBookBuilder
                         // + (titleAuthor.Item2 is not null ? $" -metadata artist=\"{titleAuthor.Item2}\"" : string.Empty)
                         + $" -map 1 -map 0 -c copy -disposition:0 attached_pic"
                         + $" _{Path.GetFileName(audioBookFileName)}"
-                        + " -hide_banner -loglevel error";
+                        + " -hide_banner";
 
         runner.Run(attachCommand, workingFolder);
 
         string serialFolder = FileManager.GetFullPathToSerialFolder(serial);
 
-        File.Move(Path.Combine(serialFolder, "_" + Path.GetFileName(audioBookFileName)),
+        string bookFilePath = Path.Combine(serialFolder, "_" + Path.GetFileName(audioBookFileName));
+
+        if (!File.Exists(bookFilePath))
+        {
+            Console.WriteLine($"Audio book {niceAudioBookFileName} was NOT created. Read ffmpeg output or try to make zip via -z parameter.");
+            return;
+        }
+
+        File.Move(bookFilePath,
              Path.Combine(serialFolder, Path.GetFileName(audioBookFileName)), true);
         FileManager.RenameAudioBook(serial);
 
