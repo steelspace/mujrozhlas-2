@@ -102,7 +102,7 @@ public static class FileManager
         return Path.GetFullPath(Path.Combine(downloadFolder, new SanitizedFileName(serial.Id).Value));
     }
 
-    public static string DownloadImageToOutputFilder(Serial serial, string fileName)
+    public static string DownloadImageToOutputFolder(Serial serial, string fileName)
     {
         if (string.IsNullOrEmpty(serial.CoverArtUrl))
         {

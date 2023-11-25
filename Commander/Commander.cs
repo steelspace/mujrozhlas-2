@@ -128,7 +128,10 @@ public class Commander
         var serials = database.GetAllSerials();
 
         // filter for serial ID
-        serials = serials.Where(s => s.Id == serialId).ToList();
+        if (!string.IsNullOrEmpty(serialId))
+        {
+            serials = serials.Where(s => s.Id == serialId).ToList();
+        }
 
         if (serials.Count < 1)
         {

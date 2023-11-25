@@ -93,7 +93,7 @@ public class AudioBookBuilder
 
         string metadata = CreateMetadata(serial);
         string metadataFilePath = FileManager.WriteBuilderTextFile(serial, metadataFile, metadata);
-        string coverArtFilePath = FileManager.DownloadImageToOutputFilder(serial, coverArtFile);
+        string coverArtFilePath = FileManager.DownloadImageToOutputFolder(serial, coverArtFile);
 
         string listFilePath = FileManager.WriteBuilderTextFile(serial, listFileName, serialFileNames);
         string audioBookFileName = FileManager.GetAudioBookFileName(serial);
