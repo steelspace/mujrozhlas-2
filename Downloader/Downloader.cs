@@ -1,4 +1,5 @@
 using MujRozhlas.Builder;
+using MujRozhlas.Common;
 using MujRozhlas.Data;
 using MujRozhlas.Database;
 using MujRozhlas.FileManagement;
@@ -51,10 +52,15 @@ public class Downloader
         }
 
         string command = $"ffmpeg -i \"{url}\" -bsf:a aac_adtstoasc -vcodec copy -y -c copy -crf 50 -f mp4 \"{episodeFileNameWithPath}\"";
-        //runner.Run(command);
+        runner.Run(command);
 
         string fileName = Path.GetFileName(episodeFileNameWithPath);
-        string episodeDirectory = Path.GetDirectoryName(episodeFileNameWithPath);
+        string? episodeDirectory = Path.GetDirectoryName(episodeFileNameWithPath);
+
+        if (episodeDirectory is null)
+        {
+            throw new ExtractorException("Episode folder not found");
+        }
 
         var titleAuthor = AudioBookBuilder.GetTitleAuthor(episode.ShortTitle);
 
@@ -63,7 +69,14 @@ public class Downloader
             + $" -c copy \"_{fileName}\"";
         runner.Run(command2, Path.GetFullPath(episodeDirectory));
 
-        File.Move(Path.GetFullPath(Path.Combine(episodeDirectory, "_" + fileName)), Path.GetFullPath(fileName), true);
+        if (!File.Exists(Path.Combine(episodeDirectory, "_" + fileName)))
+        {
+            throw new ExtractorException($"Tagging file {"_" + fileName} failed");
+        }
+
+        File.Move(Path.GetFullPath(Path.Combine(episodeDirectory, "_" + fileName)),
+            Path.GetFullPath(Path.Combine(episodeDirectory, fileName)),
+            true);
 
         if (File.Exists(episodeFileNameWithPath))
         {
