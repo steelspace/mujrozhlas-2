@@ -67,9 +67,12 @@ public class AudioBookBuilder
             return;
         }
 
+        string coverArtFile = "cover.jpg";
+        string coverArtFilePath = FileManager.DownloadImageToOutputFolder(serial, coverArtFile);
+
         string bookFilePath = GetBookFilePath(audioBookFileName, serialFolder);
 
-        FileManager.ZipAudioBook(serialFileNames, bookFilePath, serial.ShortTitle);
+        FileManager.ZipAudioBook(serialFileNames, bookFilePath, serial.ShortTitle, coverArtFilePath);
 
         File.Move(bookFilePath,
              Path.Combine(serialFolder, Path.GetFileName(audioBookFileName)), true);

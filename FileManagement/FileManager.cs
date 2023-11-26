@@ -137,7 +137,7 @@ public static class FileManager
         Directory.Delete(path, true);
     }
 
-    public static void ZipAudioBook(IEnumerable<string> files, string zipFilePath, string serialName)
+    public static void ZipAudioBook(IEnumerable<string> files, string zipFilePath, string serialName, string coverArtFilePath)
     {
         File.Delete(zipFilePath);
         using var archive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create);
@@ -149,5 +149,7 @@ public static class FileManager
             archive.CreateEntryFromFile(file, $"{chapterNumber:D2} - {serialName}.mp4");
             chapterNumber++;
         }
+
+        archive.CreateEntryFromFile(coverArtFilePath, "cover.jpg");
     }
 }
