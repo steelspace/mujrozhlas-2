@@ -76,9 +76,10 @@ public static class FileManager
 
     public static bool IsAudioBookReady(Serial serial)
     {
-        string audioBookPath = GetNiceAudioBookFileName(serial);
+        string audioBookPath = GetNiceAudioBookFileName(serial, false);
+        string audioBookZipPath = GetNiceAudioBookFileName(serial, true);
 
-        return File.Exists(audioBookPath);
+        return File.Exists(audioBookPath) || File.Exists(audioBookZipPath);
     }
 
     public static bool IsEpisodeDownloaded(Episode episode)

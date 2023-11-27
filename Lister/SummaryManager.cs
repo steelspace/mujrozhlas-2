@@ -16,7 +16,7 @@ public class SummaryManager
         this.database = database;
     }
 
-    public void ListSerials()
+    public void ListSerials(bool incompleteOnly)
     {
         var requestedSerials = database.GetAllSerials();
 
@@ -31,7 +31,7 @@ public class SummaryManager
             Config = TableConfiguration.Markdown()
         };
 
-        foreach (var serial in requestedSerials)
+        foreach (var serial in requestedSerials.OrderBy(s => s.ShortTitle))
         {
             var episodes = database.GetEpisodes(serial.Id);
             var downloaded = episodes.Where(FileManager.IsEpisodeDownloaded);
@@ -43,6 +43,12 @@ public class SummaryManager
             bool isGone = downloaded.MaxOrDefault(e => e.Part) < availableAudioLinks.MinDefault(e => e.Part);
 
             bool isBookReady = FileManager.IsAudioBookReady(serial);
+
+            if (isBookReady && incompleteOnly)
+            {
+                continue;
+            }
+
             bool allEpisodesDownloaded = IsSerialCompletelyDownloaded(database, serial);
 
             table.AddRow(serial.Title.Truncate(30, true), serial.Id, serial.TotalParts,

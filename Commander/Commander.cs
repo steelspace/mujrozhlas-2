@@ -115,7 +115,7 @@ public class Commander
     public int RunList(ListOptions listOptions)
     {
         RunRefreshEpisodes(listOptions.Force);
-        summaryManager.ListSerials();
+        summaryManager.ListSerials(listOptions.IncompleteOnly);
 
         return 0;
     }

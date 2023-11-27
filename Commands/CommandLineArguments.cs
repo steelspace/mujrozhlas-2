@@ -6,7 +6,10 @@ namespace MujRozhlas.CommandLineArguments;
 public class ListOptions
 {
     [Option('f', "force", HelpText = "Refresh serials and episodes regardless the last update.")]
-    public bool Force { get; set; }    
+    public bool Force { get; set; }
+
+    [Option('i', "incomplete", HelpText = "List only incomplete serials.")]
+    public bool IncompleteOnly { get; set; }    
 }
 
 [Verb("download", HelpText = "Download all episodes that are available.")]
