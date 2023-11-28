@@ -26,7 +26,7 @@ public class SummaryManager
             return;
         }
 
-        var table = new Table("Serial", "Id", "Total Parts", "Downloaded", "State", "Book")
+        var table = new Table("Serial", "Id", "Total Parts", "Downloaded", "State", "Book", "Available")
         {
             Config = TableConfiguration.Markdown()
         };
@@ -49,12 +49,27 @@ public class SummaryManager
                 continue;
             }
 
+            DateTimeOffset? playableTill = null;
+            int? availableInDays = null;
+
+            if (hasUndownloaded)
+            {
+                playableTill = episodes.SelectMany(e => e.AudioLinks).Max(a => a.PlayableTill);
+                var playableFor = playableTill - DateTimeOffset.Now;
+
+                if (playableFor is not null)
+                {
+                    availableInDays = (int)playableFor.Value.TotalDays;
+                }
+            }
+
             bool allEpisodesDownloaded = IsSerialCompletelyDownloaded(database, serial);
 
             table.AddRow(serial.Title.Truncate(30, true), serial.Id, serial.TotalParts,
                     MinMax(downloaded),
-                    isGone ? "MISSED" : hasUndownloaded ? "TO DOWNLOAD" : "OK",
-                    isBookReady ? "READY" : allEpisodesDownloaded ? "DOWNLOADED" : "INCOMPLETE");
+                    isGone ? "MISSED" : hasUndownloaded ? "EP. AVAILABLE" : "OK",
+                    isBookReady ? "READY" : allEpisodesDownloaded ? "DOWNLOADED" : "INCOMPLETE",
+                    availableInDays is not null ? availableInDays + " days" : String.Empty);
         }
 
         Console.WriteLine(table.ToString());
