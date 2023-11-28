@@ -41,7 +41,6 @@ public class SummaryManager
                 downloaded.MaxOrDefault(e => e.Part) < availableAudioLinks.MaxOrDefault(e => e.Part);
 
             bool isGone = downloaded.MaxOrDefault(e => e.Part) < availableAudioLinks.MinDefault(e => e.Part);
-
             bool isBookReady = FileManager.IsAudioBookReady(serial);
 
             if (isBookReady && incompleteOnly)
