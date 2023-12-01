@@ -69,14 +69,16 @@ public class Downloader
             + $" -c copy \"_{fileName}\"";
         runner.Run(command2, Path.GetFullPath(episodeDirectory));
 
-        if (!File.Exists(Path.Combine(episodeDirectory, "_" + fileName)))
+        if (File.Exists(Path.Combine(episodeDirectory, "_" + fileName)))
         {
-            throw new ExtractorException($"Tagging file {"_" + fileName} failed");
+            File.Move(Path.GetFullPath(Path.Combine(episodeDirectory, "_" + fileName)),
+                Path.GetFullPath(Path.Combine(episodeDirectory, fileName)),
+                true);
         }
-
-        File.Move(Path.GetFullPath(Path.Combine(episodeDirectory, "_" + fileName)),
-            Path.GetFullPath(Path.Combine(episodeDirectory, fileName)),
-            true);
+        else
+        {
+            Console.WriteLine($"Tagging file {"_" + fileName} of '{episode.ShortTitle}' failed");
+        }
 
         if (File.Exists(episodeFileNameWithPath))
         {

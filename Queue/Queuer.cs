@@ -55,7 +55,7 @@ public class Queuer
 
     public static AudioLink? GetPreferredAudioLink(List<AudioLink> audioLinks)
     {
-        var audioLink = audioLinks.Where(al => al.Variant == "hls").FirstOrDefault();
+        var audioLink = audioLinks.Where(al => al.Variant == "dash").FirstOrDefault();
 
         if (audioLink is null)
         {

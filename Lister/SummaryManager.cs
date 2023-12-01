@@ -40,7 +40,7 @@ public class SummaryManager
             bool hasUndownloaded =
                 downloaded.MaxOrDefault(e => e.Part) < availableAudioLinks.MaxOrDefault(e => e.Part);
 
-            bool isGone = downloaded.MaxOrDefault(e => e.Part) < availableAudioLinks.MinDefault(e => e.Part);
+            bool isGone = downloaded.Any() && downloaded.MaxOrDefault(e => e.Part) < availableAudioLinks.MinDefault(e => e.Part);
             bool isBookReady = FileManager.IsAudioBookReady(serial);
 
             if (isBookReady && incompleteOnly)
@@ -68,7 +68,7 @@ public class SummaryManager
                     MinMax(downloaded),
                     isGone ? "MISSED" : hasUndownloaded ? "EP. AVAILABLE" : "OK",
                     isBookReady ? "READY" : allEpisodesDownloaded ? "DOWNLOADED" : "INCOMPLETE",
-                    availableInDays is not null ? availableInDays + " days" : String.Empty);
+                    availableInDays is not null ? availableInDays > 10000 ? "UNRESTRICTED" : availableInDays + " days" : String.Empty);
         }
 
         Console.WriteLine(table.ToString());
