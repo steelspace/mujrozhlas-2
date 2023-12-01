@@ -286,10 +286,12 @@ public class TitlePageParser
             {
                 string variant = audioLink!["variant"]!.GetValue<string>();
 
+                var playAbleTill = audioLink!["playableTill"]?.GetValue<DateTimeOffset>();
+
                 var audio = new AudioLink(
                     $"{episodeId}/{variant}",
                     episodeId,
-                    audioLink!["playableTill"]!.GetValue<DateTimeOffset>(),
+                    playAbleTill ?? DateTimeOffset.MaxValue,
                     variant,
                     audioLink!["duration"]!.GetValue<int>(),
                     audioLink!["url"]!.GetValue<string>()
