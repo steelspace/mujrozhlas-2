@@ -150,7 +150,5 @@ public static class FileManager
             archive.CreateEntryFromFile(file, $"{chapterNumber:D2} - {serialName}.mp4");
             chapterNumber++;
         }
-
-        archive.CreateEntryFromFile(coverArtFilePath, "cover.jpg");
     }
 }
