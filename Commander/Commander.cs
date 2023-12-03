@@ -161,15 +161,34 @@ public class Commander
             }
             else
             {
-                database.DeleteSerialEpisodes(serialId);
-                database.DeleteSerial(serialId);
-                FileManager.DeleteSerialFiles(serialId);
-
-                Console.WriteLine($"Serial '{serial.ShortTitle}' was deleted.");
+                DeleteSerial(serial);
             }
 
         }
         return 0;
+    }
+
+    public int RunPurge(PurgeOptions opts)
+    {
+        var serials = database.GetAllSerials();
+
+        foreach (var serial in serials)
+        {
+            if (FileManager.IsAudioBookReady(serial))
+            {
+                DeleteSerial(serial);
+            }
+        }
+        return 0;
+    }
+
+    void DeleteSerial(Serial serial)
+    {
+        database.DeleteSerialEpisodes(serial.Id);
+        database.DeleteSerial(serial.Id);
+        FileManager.DeleteSerialFiles(serial.Id);
+
+        Console.WriteLine($"Serial '{serial.ShortTitle}' was deleted.");
     }
 
     int RunRefreshEpisodes(bool forceRefresh = false)

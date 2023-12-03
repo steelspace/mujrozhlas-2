@@ -43,3 +43,8 @@ public class DeleteOptions
     [Option('i', "id", Required = true, HelpText = "Space separated serial IDs to be removed. Use 'list' verb to determine serial ID.")]
     public string SerialIds { get; set; } = String.Empty;
 }
+
+[Verb("purge", HelpText = "Delete all finished serials (audio books are not deleted)")]
+public class PurgeOptions
+{
+}
