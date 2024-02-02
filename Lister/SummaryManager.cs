@@ -26,7 +26,7 @@ public class SummaryManager
             return;
         }
 
-        var table = new Table("Serial", "Id", "Total Parts", "Downloaded", "State", "Book", "Available")
+        var table = new Table("Serial", "Id", "Total", "Down.", "State", "Book", "Available")
         {
             Config = TableConfiguration.Markdown()
         };
@@ -68,7 +68,7 @@ public class SummaryManager
             table.AddRow(serial.Title.Truncate(30, true), serial.Id, serial.TotalParts,
                     MinMax(downloaded),
                     isGone ? "MISSED" : hasUndownloaded ? "EP. AVAILABLE" : "OK",
-                    isBookReady ? "READY" : allEpisodesDownloaded ? "DOWNLOADED" : "INCOMPLETE",
+                    isBookReady ? "BOOK CREATED" : allEpisodesDownloaded ? "ALL EPISODES" : "INCOMPLETE",
                     availableInDays is not null ? availableInDays > 10000 ? "UNRESTRICTED" : availableInDays + " days" : String.Empty);
         }
 
