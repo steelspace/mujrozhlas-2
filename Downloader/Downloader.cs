@@ -47,7 +47,7 @@ public class Downloader
 
         if (episode.IsDownloaded && File.Exists(episodeFileNameWithPath))
         {
-            Console.WriteLine($"Audio for '{episode.ShortTitle}' part {episode.Part} is already donwloaded.");
+            Console.WriteLine($"Audio for '{episode.ShortTitle}' part {episode.Part} is already downloaded.");
             return;
         }
 
