@@ -111,7 +111,7 @@ public class AudioBookBuilder
         // build
         string buildCommand = String.Format($"ffmpeg -f concat -safe 0 -i {Path.GetFileName(listFilePath)} -i {Path.GetFileName(metadataFilePath)}"
             + $" -vn -y -b:a 128k -acodec aac -ac 2 {Path.GetFileName(audioBookFileName)}")
-            + " -hide_banner";
+            + " -hide_banner -movflags separate_moof";
 
         string workingFolder = FileManager.GetFullPathToSerialFolder(serial);
         runner.Run(buildCommand, workingFolder);
@@ -123,7 +123,7 @@ public class AudioBookBuilder
                         + (titleAuthor.Item2 is not null ? $" -metadata artist='{titleAuthor.Item2}'" : string.Empty)
                         + $" -map 1 -map 0 -c copy -disposition:0 attached_pic"
                         + $" _{Path.GetFileName(audioBookFileName)}"
-                        + " -hide_banner";
+                        + " -hide_banner -movflags separate_moof";
 
         runner.Run(attachCommand, workingFolder);
 

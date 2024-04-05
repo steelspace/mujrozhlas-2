@@ -19,19 +19,19 @@ public class Episode : IPart
     }
 
     [JsonPropertyName("id")]
-    public string Id { get; set; }
+    public string Id { get; set; } = String.Empty;
 
     [JsonPropertyName("serial-id")]
-    public string SerialId { get; set; }
+    public string SerialId { get; set; } = String.Empty;
 
     [JsonPropertyName("title")]
-    public string Title { get; set; }
+    public string Title { get; set; } = String.Empty;
     
     [JsonPropertyName("short-title")]
-    public string ShortTitle { get; set; }
+    public string ShortTitle { get; set; } = String.Empty;
 
     [JsonPropertyName("cover-art-url")]
-    public string CoveArtUrl { get; set; }
+    public string CoveArtUrl { get; set; } = String.Empty;
 
     [JsonPropertyName("part")]
     public int Part { get; set; }
