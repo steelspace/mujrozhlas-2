@@ -151,4 +151,19 @@ public static class FileManager
             chapterNumber++;
         }
     }
+
+    public static void DeleteFailedDownload(Episode episode)
+    {
+        string fileName = GetFileName(episode);
+
+        var fi = new FileInfo(fileName);
+        if (fi.Exists)
+        {
+            if (fi.Length == 0)
+            {
+                Console.WriteLine($"File {episode.Id} has zero size, deleting");
+                File.Delete(fileName);   
+            }
+        }
+    }
 }

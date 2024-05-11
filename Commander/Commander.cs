@@ -182,6 +182,26 @@ public class Commander
         return 0;
     }
 
+    public int RunClean(CleanOptions opts)
+    {
+        Console.WriteLine("Cleaning all failed downloads.");
+
+        var parser = new TitlePageParser(database);
+        var serials = database.GetAllSerials();
+
+        foreach (var serial in serials)
+        {
+            var episodes = parser.GetAvailableEpisodes(serial.Id);
+
+            foreach (var episode in episodes)
+            {
+                FileManager.DeleteFailedDownload(episode);
+            }
+        }
+
+        return 0;
+    }
+
     void DeleteSerial(Serial serial)
     {
         database.DeleteSerialEpisodes(serial.Id);

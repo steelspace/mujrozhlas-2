@@ -48,3 +48,8 @@ public class DeleteOptions
 public class PurgeOptions
 {
 }
+
+[Verb("clean", HelpText = "Delete all failed downloads")]
+public class CleanOptions
+{
+}
