@@ -51,7 +51,7 @@ public class Downloader
             return;
         }
 
-        string command = $"ffmpeg -i \"{url}\" -bsf:a aac_adtstoasc -vcodec copy -y -c copy -crf 50 -f mp4 \"{episodeFileNameWithPath}\"";
+        string command = $"ffmpeg -i \"{url}\" -vcodec copy -y -c copy -crf 50 -f mp4 \"{episodeFileNameWithPath}\"";
         runner.Run(command);
 
         string fileName = Path.GetFileName(episodeFileNameWithPath);

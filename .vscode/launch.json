@@ -13,9 +13,9 @@
             "program": "${workspaceFolder}/bin/Debug/net8.0/mujrozhlas-2.dll",
             // unavailable
             // "args": ["add", "-u https://www.mujrozhlas.cz/tip-mujrozhlas/petr-vodicka-hnojivo https://www.mujrozhlas.cz/tip-mujrozhlas/milos-urban-sedmikosteli"],
-            // "args": ["download"],
+            "args": ["download"],
             // "args": ["build"],
-            "args": ["clean"],
+            // "args": ["clean"],
             // "args": ["build", "-i c67ded26-ad1c-32e8-a997-bbe8d107f3c4", "-z"],
             // "args": ["list"],
             // "args": ["purge"],
