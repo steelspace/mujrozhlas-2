@@ -67,6 +67,13 @@ public class Commander
             else
             {
                 parsedEpisode = parser.ExtractTitleInformationFromPlayerWrapper(serialUrl);
+
+                if (parsedEpisode is null)
+                {
+                    Console.WriteLine($"URL '{serialUrl}' contains no supported show.");
+                    return -1;
+                }
+
                 var episode = parser.GetNonSerialEpisode(parsedEpisode!.Uuid);
 
                 serial = database.GetSerial(episode.Id);
