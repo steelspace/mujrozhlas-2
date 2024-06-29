@@ -65,7 +65,7 @@ public class SummaryManager
 
             bool allEpisodesDownloaded = IsSerialCompletelyDownloaded(database, serial);
 
-            table.AddRow(serial.Title.Truncate(30, true), serial.Id, serial.TotalParts,
+            table.AddRow(serial.Title.Truncate(40, true), serial.Id, serial.TotalParts,
                     MinMax(downloaded, serial.TotalParts),
                     isBookReady ? "BOOK CREATED" : allEpisodesDownloaded ? "ALL EPISODES" : "INCOMPLETE",
                     availableInDays is not null ? availableInDays > 10000 ? "UNRESTRICTED" : availableInDays + " days" : String.Empty);
