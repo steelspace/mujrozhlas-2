@@ -12,8 +12,8 @@
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/net8.0/mujrozhlas-2.dll",
             // unavailable
-            "args": ["add", "-u https://www.mujrozhlas.cz"],
-            // "args": ["download"],
+            // "args": ["add", "-u https://www.mujrozhlas.cz"],
+            "args": ["download"],
             // "args": ["build"],
             // "args": ["clean"],
             // "args": ["build", "-i c67ded26-ad1c-32e8-a997-bbe8d107f3c4", "-z"],

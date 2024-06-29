@@ -26,7 +26,7 @@ public class SummaryManager
             return;
         }
 
-        var table = new Table("Serial", "Id", "Total", "Down.", "State", "Book", "Available")
+        var table = new Table("Serial", "Id", "Total", "Down.", "Book", "Available")
         {
             Config = TableConfiguration.Markdown()
         };
@@ -66,8 +66,7 @@ public class SummaryManager
             bool allEpisodesDownloaded = IsSerialCompletelyDownloaded(database, serial);
 
             table.AddRow(serial.Title.Truncate(30, true), serial.Id, serial.TotalParts,
-                    MinMax(downloaded),
-                    isGone ? "MISSED" : hasUndownloaded ? "EP. AVAILABLE" : "OK",
+                    MinMax(downloaded, serial.TotalParts),
                     isBookReady ? "BOOK CREATED" : allEpisodesDownloaded ? "ALL EPISODES" : "INCOMPLETE",
                     availableInDays is not null ? availableInDays > 10000 ? "UNRESTRICTED" : availableInDays + " days" : String.Empty);
         }
@@ -87,12 +86,34 @@ public class SummaryManager
         return episodes.All(e => FileManager.IsEpisodeDownloaded(e));
     }
 
-    static string MinMax(IEnumerable<Episode> episodes)
+    static string MinMax(IEnumerable<Episode> episodes, int totalParts)
     {
         int min = episodes.MinDefault(al => al.Part);
         int max = episodes.MaxOrDefault(al => al.Part);
-        return $"{(min == 0 ? String.Empty : min)}-{(max == 0 ? String.Empty : max)}";
+
+        var missingEpisodes = GetMissingNumbers(totalParts, episodes.Select(e => e.Part));
+
+        string baseText = $"{(min == 0 ? String.Empty : min)}-{(max == 0 ? String.Empty : max)}";
+
+        if (missingEpisodes.Count > 0 && missingEpisodes.Max() < episodes.Max(e => e.Part))
+        {
+            baseText += $" (Miss {string.Join(",", missingEpisodes)})";
+        }
+
+        return baseText;
     }
+
+    static List<int> GetMissingNumbers(int maxNumber, IEnumerable<int> inputList)
+    {
+        var fullSet = new HashSet<int>(Enumerable.Range(1, maxNumber));
+
+        foreach (var num in inputList)
+        {
+            fullSet.Remove(num);
+        }
+
+        return fullSet.ToList();
+    }    
 }
 
 public static class MyEnumerableExtensions
