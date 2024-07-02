@@ -95,7 +95,7 @@ public class SummaryManager
 
         string baseText = $"{(min == 0 ? String.Empty : min)}-{(max == 0 ? String.Empty : max)}";
 
-        if (missingEpisodes.Count > 0 && missingEpisodes.Max() < episodes.Max(e => e.Part))
+        if (missingEpisodes.Count > 0 && missingEpisodes.Max() < episodes.MaxOrDefault(e => e.Part))
         {
             baseText += $" (Miss {string.Join(",", missingEpisodes)})";
         }
