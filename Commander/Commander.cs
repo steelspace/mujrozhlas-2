@@ -7,38 +7,38 @@ using MujRozhlas.FileManagement;
 using MujRozhlas.Lister;
 using MujRozhlas.Runner;
 
-namespace MujRozhlas.Commander;
+namespace MujRozhlas.Commands;
 
 public class Commander
 {
     private readonly IDatabase database;
     private readonly IRunner runner;
+    private readonly TitlePageParser parser;
 
     private readonly SummaryManager summaryManager;
 
-    public Commander(IDatabase database, IRunner runner)
+    public Commander(IDatabase database, IRunner runner, TitlePageParser parser)
     {
         this.database = database;
         this.runner = runner;
+        this.parser = parser;
 
         summaryManager = new SummaryManager(database);
     }
 
-    public int RunAdd(AddOptions addOptions)
+    public async Task<int> RunAddAsync(AddOptions addOptions)
     {
         var serialUrls = addOptions.SerialUrls.Trim().Split(" ");
 
         foreach (var serialUrl in serialUrls)
         {
-            var parser = new TitlePageParser(database);
-            
             // try non serial first by player wrapper
-            var parsedEpisode = parser.ExtractTitleInformationFromPlayerWrapper(serialUrl);
+            var parsedEpisode = await parser.ExtractTitleInformationFromPlayerWrapperAsync(serialUrl);
 
             if (parsedEpisode is null)
             {
                 // probably serial
-                parsedEpisode = parser.ExtractTitleInformation(serialUrl);
+                parsedEpisode = await parser.ExtractTitleInformationAsync(serialUrl);
             }
 
             if (parsedEpisode is null)
@@ -47,7 +47,7 @@ public class Commander
                 continue;
             }
 
-            var serial = parser.GetSerial(parsedEpisode);
+            var serial = await parser.GetSerialAsync(parsedEpisode);
 
             if (serial is not null)
             {
@@ -60,13 +60,13 @@ public class Commander
                 }
 
                 database.SaveSerial(serial);
-                GetEpisodes(parser, serial);
+                await GetEpisodesAsync(serial);
 
                 Console.WriteLine($"Serial '{serial.ShortTitle}' was saved into database.");
             }
             else
             {
-                parsedEpisode = parser.ExtractTitleInformationFromPlayerWrapper(serialUrl);
+                parsedEpisode = await parser.ExtractTitleInformationFromPlayerWrapperAsync(serialUrl);
 
                 if (parsedEpisode is null)
                 {
@@ -74,7 +74,7 @@ public class Commander
                     return -1;
                 }
 
-                var episode = parser.GetNonSerialEpisode(parsedEpisode!.Uuid);
+                var episode = await parser.GetNonSerialEpisodeAsync(parsedEpisode!.Uuid);
 
                 serial = database.GetSerial(episode.Id);
                 if (serial is not null)
@@ -99,9 +99,9 @@ public class Commander
         return 0;
     }
 
-    int RunQueue()
+    async Task<int> RunQueueAsync()
     {
-        RunRefreshEpisodes();
+        await RunRefreshEpisodesAsync();
 
         var queuer = new Queuer.Queuer(database);
         queuer.QueueAvailableEpisodes();
@@ -109,19 +109,19 @@ public class Commander
         return 0;
     }
 
-    public int RunDownload(DownloadOptions _)
+    public async Task<int> RunDownloadAsync(DownloadOptions _)
     {
-        RunRefreshEpisodes();
-        RunQueue();
+        await RunRefreshEpisodesAsync();
+        await RunQueueAsync();
 
         var downloader = new Downloader.Downloader(database, runner);
         downloader.DownloadAllAudioLinks();
         return 0;
     }
 
-    public int RunList(ListOptions listOptions)
+    public async Task<int> RunListAsync(ListOptions listOptions)
     {
-        RunRefreshEpisodes(listOptions.Force);
+        await RunRefreshEpisodesAsync(listOptions.Force);
         summaryManager.ListSerials(listOptions.IncompleteOnly);
 
         return 0;
@@ -189,16 +189,15 @@ public class Commander
         return 0;
     }
 
-    public int RunClean(CleanOptions opts)
+    public async Task<int> RunCleanAsync(CleanOptions opts)
     {
         Console.WriteLine("Cleaning all failed downloads.");
 
-        var parser = new TitlePageParser(database);
         var serials = database.GetAllSerials();
 
         foreach (var serial in serials)
         {
-            var episodes = parser.GetAvailableEpisodes(serial.Id);
+            var episodes = await parser.GetAvailableEpisodesAsync(serial.Id);
 
             foreach (var episode in episodes)
             {
@@ -218,11 +217,10 @@ public class Commander
         Console.WriteLine($"Serial '{serial.ShortTitle}' was deleted.");
     }
 
-    int RunRefreshEpisodes(bool forceRefresh = false)
+    async Task<int> RunRefreshEpisodesAsync(bool forceRefresh = false)
     {
         Console.WriteLine("Refreshing all episodes.");
 
-        var parser = new TitlePageParser(database);
         var serials = database.GetAllSerials();
 
         foreach (var serial in serials)
@@ -235,15 +233,15 @@ public class Commander
 
             Console.WriteLine($"Refreshing serial '{serial.ShortTitle}'.");
 
-            GetEpisodes(parser, serial);
+            await GetEpisodesAsync(serial);
         }
 
         return 0;
     }
 
-    void GetEpisodes(TitlePageParser parser, Serial serial)
+    async Task GetEpisodesAsync(Serial serial)
     {
-        var episodes = parser.GetAvailableEpisodes(serial.Id);
+        var episodes = await parser.GetAvailableEpisodesAsync(serial.Id);
         database.SaveEpisodes(episodes);
         serial.Updated = DateTimeOffset.Now;
         database.SaveSerial(serial);

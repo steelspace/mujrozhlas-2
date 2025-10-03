@@ -1,4 +1,3 @@
-
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -11,20 +10,22 @@ namespace Extractor;
 public class TitlePageParser
 {
     private readonly IDatabase database;
+    private readonly HttpClient httpClient;
 
-    public TitlePageParser(IDatabase database)
+    public TitlePageParser(IDatabase database, HttpClient httpClient)
     {
         this.database = database;
+        this.httpClient = httpClient;
     }
 
-    public Serial? GetSerial(ParsedEpisode parsedEpisode)
+    public async Task<Serial?> GetSerialAsync(ParsedEpisode parsedEpisode)
     {
         if (parsedEpisode?.Id is null)
         {
             throw new ExtractorException("Episode UUID is missing");
         }
 
-        string? episodeResponse = LoadHtmlContent($"https://api.mujrozhlas.cz/episodes/{parsedEpisode.Uuid}");
+        string? episodeResponse = await LoadHtmlContentAsync($"https://api.mujrozhlas.cz/episodes/{parsedEpisode.Uuid}");
 
         if (episodeResponse is null)
         {
@@ -62,7 +63,7 @@ public class TitlePageParser
 
         if (serialId is not null)
         {
-            string? serialResponse = LoadHtmlContent($"https://api.mujrozhlas.cz/serials/{serialId}");
+            string? serialResponse = await LoadHtmlContentAsync($"https://api.mujrozhlas.cz/serials/{serialId}");
 
             if (serialResponse is null)
             {
@@ -109,10 +110,10 @@ public class TitlePageParser
         }
     }
 
-    public ParsedEpisode ExtractTitleInformation(string url)
+    public async Task<ParsedEpisode> ExtractTitleInformationAsync(string url)
     {
         // Load HTML content from the URL
-        string htmlContent = LoadHtmlContent(url);
+        string htmlContent = await LoadHtmlContentAsync(url);
         // Load HTML string into HtmlDocument
         var doc = new HtmlDocument();
         doc.LoadHtml(htmlContent);
@@ -146,10 +147,10 @@ public class TitlePageParser
         return episode;
     }
 
-    public ParsedEpisode? ExtractTitleInformationFromPlayerWrapper(string url)
+    public async Task<ParsedEpisode?> ExtractTitleInformationFromPlayerWrapperAsync(string url)
     {
         // Load HTML content from the URL
-        string htmlContent = LoadHtmlContent(url);
+        string htmlContent = await LoadHtmlContentAsync(url);
         // Load HTML string into HtmlDocument
         var doc = new HtmlDocument();
         doc.LoadHtml(htmlContent);
@@ -183,7 +184,7 @@ public class TitlePageParser
         return episode;
     }
 
-    public List<Episode> GetAvailableEpisodes(string serialId)
+    public async Task<List<Episode>> GetAvailableEpisodesAsync(string serialId)
     {
         var serial = database.GetSerial(serialId);
 
@@ -194,7 +195,7 @@ public class TitlePageParser
             return episodes;
         }
 
-        string? serialEpisodesResponse = LoadHtmlContent($"https://api.mujrozhlas.cz/serials/{serialId}/episodes");
+        string? serialEpisodesResponse = await LoadHtmlContentAsync($"https://api.mujrozhlas.cz/serials/{serialId}/episodes");
 
         if (serialEpisodesResponse is null)
         {
@@ -225,9 +226,9 @@ public class TitlePageParser
         }
     }
 
-    public Episode GetNonSerialEpisode(string episodeId)
+    public async Task<Episode> GetNonSerialEpisodeAsync(string episodeId)
     {
-        string? episodeResponse = LoadHtmlContent($"https://api.mujrozhlas.cz/episodes/{episodeId}");
+        string? episodeResponse = await LoadHtmlContentAsync($"https://api.mujrozhlas.cz/episodes/{episodeId}");
 
         if (episodeResponse is null)
         {
@@ -306,20 +307,24 @@ public class TitlePageParser
         return null;
     }
 
-    static string LoadHtmlContent(string url)
+    private async Task<string> LoadHtmlContentAsync(string url)
     {
-        using (HttpClient client = new HttpClient())
+        try
         {
-            try
-            {
-                // Download the HTML content from the specified URL
-                return client.GetStringAsync(url).Result;
-            }
-            catch (HttpRequestException e)
-            {
-                Console.WriteLine($"Error loading HTML content: {e.Message}");
-                return string.Empty;
-            }
+            var response = await httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+        catch (HttpRequestException e)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"\n--- HTTP Request Failed ---");
+            Console.WriteLine($"URL: {url}");
+            Console.WriteLine($"Status Code: {e.StatusCode}");
+            Console.WriteLine($"Error: {e.Message}");
+            Console.WriteLine($"---------------------------\n");
+            Console.ResetColor();
+            throw new ExtractorException($"Failed to load content from {url}", e);
         }
     }
 }
