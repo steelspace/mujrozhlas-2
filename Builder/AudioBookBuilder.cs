@@ -35,6 +35,16 @@ public class AudioBookBuilder
             return;
         }
 
+        // when forcing a build, show how many parts are available and proceed with available files
+        if (force)
+        {
+            var downloadedCount = database.GetEpisodes(serial.Id).Count(e => FileManager.IsEpisodeDownloaded(e));
+            if (downloadedCount < serial.TotalParts)
+            {
+                Console.WriteLine($"Forced build for '{serial.ShortTitle}': only {downloadedCount}/{serial.TotalParts} parts are downloaded — building with available parts.");
+            }
+        }
+
         string prefix = new SanitizedFileName(serial.Id).Value;
 
         if (zip)
@@ -213,17 +223,21 @@ public class AudioBookBuilder
             builder.AppendLine($"artist={titleAuthor.Item2}");
         }
 
-        var episodes = database.GetEpisodes(serial.Id);
+        // only include episodes that actually have downloaded audio files so metadata matches the concat list
+        var episodes = database.GetEpisodes(serial.Id)
+                               .Where(FileManager.IsEpisodeDownloaded)
+                               .OrderBy(p => p.Part)
+                               .ToList();
 
         int start = 0;
-        foreach (var episode in episodes.OrderBy(p => p.Part))
+        foreach (var episode in episodes)
         {
             var audioLinks = database.GetAudioLinks(episode.Id);
             var audioLink = Queuer.Queuer.GetPreferredAudioLink(audioLinks);
 
             if (audioLink is null)
             {
-                Console.WriteLine($"No audio link found yet for episode {episode.Part} of serial {serial.ShortTitle}");
+                Console.WriteLine($"No audio link found yet for downloaded episode {episode.Part} of serial {serial.ShortTitle}");
                 continue;
             }
 
